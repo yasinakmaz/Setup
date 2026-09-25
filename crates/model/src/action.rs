@@ -92,7 +92,7 @@ fn is_true(b: &bool) -> bool {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "kebab-case")]
+#[serde(tag = "kind", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum ActionKind {
     Script(ScriptAction),
     Database(DatabaseAction),
@@ -121,7 +121,7 @@ impl ActionKind {
 // ---------------------------------------------------------------- scripts
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "shell", rename_all = "kebab-case")]
+#[serde(tag = "shell", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum Shell {
     /// Windows PowerShell (`powershell.exe`) or PowerShell 7 (`pwsh`), run
     /// with `-NoProfile -NonInteractive -ExecutionPolicy Bypass -File`.
@@ -133,7 +133,7 @@ pub enum Shell {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "source", rename_all = "kebab-case")]
+#[serde(tag = "source", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum ScriptSource {
     /// Script text stored in the project; embedded into the installer.
     Inline { code: String },
@@ -261,7 +261,7 @@ pub struct DbConnection {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "op", rename_all = "kebab-case")]
+#[serde(tag = "op", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum DbOperation {
     TestConnection,
     WaitUntilAvailable {
@@ -319,7 +319,7 @@ pub enum HttpMethod {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
+#[serde(tag = "type", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum HttpBody {
     Text { text: String, content_type: String },
     /// A JSON document with typed values substituted into string leaves
@@ -333,14 +333,14 @@ pub enum HttpBody {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
+#[serde(tag = "type", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum HttpAuth {
     Bearer { token: SecretRef },
     Basic { user: Value, password: SecretRef },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "from", rename_all = "kebab-case")]
+#[serde(tag = "from", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum CaptureSource {
     Status,
     Header { name: String },
@@ -451,7 +451,7 @@ pub enum EnvScope {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "op", rename_all = "kebab-case")]
+#[serde(tag = "op", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum EnvOperation {
     Set { value: Value },
     AppendPath { path: PathExpr },

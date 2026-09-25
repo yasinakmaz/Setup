@@ -1,0 +1,423 @@
+# Built-in Smart Prerequisites catalog.
+#
+# Rules for entries:
+# * Only vendor-operated or vendor-listed sources. Never a random third-party
+#   mirror. If fewer than three independent routes exist the Studio reports
+#   "Source redundancy degraded" and recommends an embedded fallback.
+# * Every package declares how integrity is established. `unverifiable`
+#   packages are never downloaded automatically.
+# * URL templates were checked against the vendors' servers when the entry
+#   was written; the Studio re-validates them when resolving a build.
+
+# ---------------------------------------------------------------- .NET
+
+[[item]]
+id = "dotnet-desktop-runtime"
+name = ".NET Desktop Runtime"
+vendor = "Microsoft"
+homepage = "https://dotnet.microsoft.com/download/dotnet"
+license = "MIT"
+category = "runtime"
+description = "Runtime for WPF and Windows Forms applications."
+channels = ["10.0", "9.0", "8.0"]
+requires-admin = { windows = true, linux = false }
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "dotnet-shared-framework", framework = "Microsoft.WindowsDesktop.App" }
+install = { kind = "exe", args = ["/install", "/quiet", "/norestart"], success-codes = [0], reboot-codes = [1641, 3010], already-installed-codes = [1638] }
+integrity = { kind = "dotnet-release-metadata", metadata-url = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/{channel}/releases.json", component = "windowsdesktop", file-name = "windowsdesktop-runtime-win-x64.exe" }
+signature = { authenticode-publisher = "Microsoft Corporation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/{version}/windowsdesktop-runtime-{version}-win-x64.exe"
+[[item.package.source]]
+route = "official-cdn"
+url = "https://dotnetcli.blob.core.windows.net/dotnet/WindowsDesktop/{version}/windowsdesktop-runtime-{version}-win-x64.exe"
+
+[[item.package]]
+os = "windows"
+arch = "arm64"
+file = "exe"
+detection = { kind = "dotnet-shared-framework", framework = "Microsoft.WindowsDesktop.App" }
+install = { kind = "exe", args = ["/install", "/quiet", "/norestart"], success-codes = [0], reboot-codes = [1641, 3010], already-installed-codes = [1638] }
+integrity = { kind = "dotnet-release-metadata", metadata-url = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/{channel}/releases.json", component = "windowsdesktop", file-name = "windowsdesktop-runtime-win-arm64.exe" }
+signature = { authenticode-publisher = "Microsoft Corporation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/{version}/windowsdesktop-runtime-{version}-win-arm64.exe"
+[[item.package.source]]
+route = "official-cdn"
+url = "https://dotnetcli.blob.core.windows.net/dotnet/WindowsDesktop/{version}/windowsdesktop-runtime-{version}-win-arm64.exe"
+
+[[item]]
+id = "dotnet-runtime"
+name = ".NET Runtime"
+vendor = "Microsoft"
+homepage = "https://dotnet.microsoft.com/download/dotnet"
+license = "MIT"
+category = "runtime"
+description = "Runtime for console and background .NET applications."
+channels = ["10.0", "9.0", "8.0"]
+requires-admin = { windows = true, linux = false }
+notes = "On Linux the runtime is extracted per user into ~/.dotnet; the application must use DOTNET_ROOT or be framework-dependent with an apphost that probes ~/.dotnet."
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "dotnet-shared-framework", framework = "Microsoft.NETCore.App" }
+install = { kind = "exe", args = ["/install", "/quiet", "/norestart"], success-codes = [0], reboot-codes = [1641, 3010], already-installed-codes = [1638] }
+integrity = { kind = "dotnet-release-metadata", metadata-url = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/{channel}/releases.json", component = "runtime", file-name = "dotnet-runtime-win-x64.exe" }
+signature = { authenticode-publisher = "Microsoft Corporation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://builds.dotnet.microsoft.com/dotnet/Runtime/{version}/dotnet-runtime-{version}-win-x64.exe"
+[[item.package.source]]
+route = "official-cdn"
+url = "https://dotnetcli.blob.core.windows.net/dotnet/Runtime/{version}/dotnet-runtime-{version}-win-x64.exe"
+
+[[item.package]]
+os = "linux"
+arch = "x64"
+file = "tar-gz"
+detection = { kind = "dotnet-shared-framework", framework = "Microsoft.NETCore.App" }
+install = { kind = "extract-user-local" }
+integrity = { kind = "dotnet-release-metadata", metadata-url = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/{channel}/releases.json", component = "runtime", file-name = "dotnet-runtime-linux-x64.tar.gz" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://builds.dotnet.microsoft.com/dotnet/Runtime/{version}/dotnet-runtime-{version}-linux-x64.tar.gz"
+[[item.package.source]]
+route = "official-cdn"
+url = "https://dotnetcli.blob.core.windows.net/dotnet/Runtime/{version}/dotnet-runtime-{version}-linux-x64.tar.gz"
+
+[[item]]
+id = "aspnet-runtime"
+name = "ASP.NET Core Runtime"
+vendor = "Microsoft"
+homepage = "https://dotnet.microsoft.com/download/dotnet"
+license = "MIT"
+category = "runtime"
+description = "Runtime for ASP.NET Core web applications and services."
+channels = ["10.0", "9.0", "8.0"]
+requires-admin = { windows = true, linux = false }
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "dotnet-shared-framework", framework = "Microsoft.AspNetCore.App" }
+install = { kind = "exe", args = ["/install", "/quiet", "/norestart"], success-codes = [0], reboot-codes = [1641, 3010], already-installed-codes = [1638] }
+integrity = { kind = "dotnet-release-metadata", metadata-url = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/{channel}/releases.json", component = "aspnetcore-runtime", file-name = "aspnetcore-runtime-win-x64.exe" }
+signature = { authenticode-publisher = "Microsoft Corporation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/{version}/aspnetcore-runtime-{version}-win-x64.exe"
+[[item.package.source]]
+route = "official-cdn"
+url = "https://dotnetcli.blob.core.windows.net/dotnet/aspnetcore/Runtime/{version}/aspnetcore-runtime-{version}-win-x64.exe"
+
+# ------------------------------------------------------- Visual C++ / WebView2
+
+[[item]]
+id = "vc-redist"
+name = "Microsoft Visual C++ Redistributable (2015–2022)"
+vendor = "Microsoft"
+homepage = "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist"
+license = "Microsoft Software License Terms"
+category = "runtime"
+channels = ["14"]
+requires-admin = { windows = true, linux = false }
+notes = "Microsoft publishes a single permalink that always serves the latest build. The Studio pins the downloaded file's hash at build time; if Microsoft replaces the file, the embedded fallback (recommended) is used."
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "registry", key = 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', value = "Installed", version-value = "Version" }
+install = { kind = "exe", args = ["/install", "/quiet", "/norestart"], success-codes = [0], reboot-codes = [1641, 3010], already-installed-codes = [1638] }
+integrity = { kind = "pin-at-build" }
+signature = { authenticode-publisher = "Microsoft Corporation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+
+[[item.package]]
+os = "windows"
+arch = "arm64"
+file = "exe"
+detection = { kind = "registry", key = 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\arm64', value = "Installed", version-value = "Version" }
+install = { kind = "exe", args = ["/install", "/quiet", "/norestart"], success-codes = [0], reboot-codes = [1641, 3010], already-installed-codes = [1638] }
+integrity = { kind = "pin-at-build" }
+signature = { authenticode-publisher = "Microsoft Corporation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://aka.ms/vs/17/release/vc_redist.arm64.exe"
+
+[[item]]
+id = "webview2"
+name = "Microsoft Edge WebView2 Runtime"
+vendor = "Microsoft"
+homepage = "https://developer.microsoft.com/microsoft-edge/webview2"
+license = "Microsoft Software License Terms"
+category = "runtime"
+channels = ["evergreen"]
+requires-admin = { windows = false, linux = false }
+notes = "Preinstalled on Windows 11. The Evergreen bootstrapper downloads the runtime itself; it installs per user when not elevated."
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "registry", key = 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', value = "pv", version-value = "pv", per-user-too = true }
+install = { kind = "exe", args = ["/silent", "/install"], success-codes = [0] }
+integrity = { kind = "pin-at-build" }
+signature = { authenticode-publisher = "Microsoft Corporation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
+
+# ------------------------------------------------------------- Databases
+
+[[item]]
+id = "postgresql"
+name = "PostgreSQL"
+vendor = "PostgreSQL Global Development Group (Windows build: EDB)"
+homepage = "https://www.postgresql.org/download/"
+license = "PostgreSQL License"
+category = "database"
+channels = ["17", "16", "15"]
+requires-admin = { windows = true, linux = true }
+notes = "On Linux, install PostgreSQL from the distribution or apt/yum.postgresql.org repositories; automatic installation is Windows only. The superuser password comes from a password field of the installer."
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "command", program = "psql", args = ["--version"] }
+install = { kind = "exe", args = ["--mode", "unattended", "--unattendedmodeui", "none", "--superpassword", "{secret:postgres_password}"], success-codes = [0] }
+integrity = { kind = "pin-at-build" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://get.enterprisedb.com/postgresql/postgresql-{version}-windows-x64.exe"
+
+[[item]]
+id = "mysql"
+name = "MySQL Community Server"
+vendor = "Oracle"
+homepage = "https://dev.mysql.com/downloads/mysql/"
+license = "GPL-2.0"
+category = "database"
+channels = ["8.4"]
+requires-admin = { windows = true, linux = true }
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "msi"
+detection = { kind = "command", program = "mysql", args = ["--version"] }
+install = { kind = "msi", args = [], success-codes = [0], reboot-codes = [1641, 3010] }
+integrity = { kind = "pin-at-build" }
+signature = { authenticode-publisher = "Oracle America, Inc." }
+[[item.package.source]]
+route = "official-direct"
+url = "https://dev.mysql.com/get/Downloads/MySQL-{channel}/mysql-{version}-winx64.msi"
+[[item.package.source]]
+route = "official-cdn"
+url = "https://cdn.mysql.com/archives/mysql-{channel}/mysql-{version}-winx64.msi"
+[[item.package.source]]
+route = "official-release-api"
+url = "https://downloads.mysql.com/archives/get/p/23/file/mysql-{version}-winx64.msi"
+
+[[item]]
+id = "mariadb"
+name = "MariaDB Server"
+vendor = "MariaDB Foundation"
+homepage = "https://mariadb.org/download/"
+license = "GPL-2.0"
+category = "database"
+channels = ["11.4"]
+requires-admin = { windows = true, linux = true }
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "msi"
+detection = { kind = "command", program = "mariadb", args = ["--version"] }
+install = { kind = "msi", args = ["SERVICENAME=MariaDB", "PASSWORD={secret:mariadb_root_password}"], success-codes = [0], reboot-codes = [1641, 3010] }
+integrity = { kind = "checksum-file", url = "https://archive.mariadb.org/mariadb-{version}/winx64-packages/sha256sums.txt", file-name = "mariadb-{version}-winx64.msi" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://archive.mariadb.org/mariadb-{version}/winx64-packages/mariadb-{version}-winx64.msi"
+[[item.package.source]]
+route = "official-mirror"
+url = "https://ftp.osuosl.org/pub/mariadb/mariadb-{version}/winx64-packages/mariadb-{version}-winx64.msi"
+
+[[item]]
+id = "sql-server-express"
+name = "SQL Server Express"
+vendor = "Microsoft"
+homepage = "https://www.microsoft.com/sql-server/sql-server-downloads"
+license = "Microsoft SQL Server Express License"
+category = "database"
+channels = ["2022"]
+requires-admin = { windows = true, linux = true }
+notes = "Microsoft distributes SQL Server Express through an interactive bootstrapper without published checksums. Use Embedded (with the offline media you downloaded and verified) or Custom sources with a hash."
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "registry", key = 'SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL', value = "SQLEXPRESS" }
+install = { kind = "exe", args = ["/Q", "/ACTION=Install", "/FEATURES=SQLEngine", "/INSTANCENAME=SQLEXPRESS", "/IACCEPTSQLSERVERLICENSETERMS"], success-codes = [0], reboot-codes = [3010] }
+integrity = { kind = "unverifiable" }
+
+# ------------------------------------------------------------ Languages
+
+[[item]]
+id = "java-runtime"
+name = "Java Runtime (Eclipse Temurin JRE)"
+vendor = "Eclipse Adoptium"
+homepage = "https://adoptium.net"
+license = "GPL-2.0 WITH Classpath-exception-2.0"
+category = "runtime"
+channels = ["21", "17"]
+requires-admin = { windows = true, linux = false }
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "msi"
+detection = { kind = "command", program = "java", args = ["-version"], stderr = true }
+install = { kind = "msi", args = ["ADDLOCAL=FeatureMain,FeatureEnvironment,FeatureJarFileRunWith,FeatureJavaHome"], success-codes = [0], reboot-codes = [1641, 3010] }
+integrity = { kind = "pin-at-build" }
+[[item.package.source]]
+route = "official-release-api"
+url = "https://api.adoptium.net/v3/installer/latest/{channel}/ga/windows/x64/jre/hotspot/normal/eclipse"
+
+[[item]]
+id = "nodejs"
+name = "Node.js"
+vendor = "OpenJS Foundation"
+homepage = "https://nodejs.org"
+license = "MIT"
+category = "runtime"
+channels = ["22", "20"]
+requires-admin = { windows = true, linux = false }
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "msi"
+detection = { kind = "command", program = "node", args = ["--version"] }
+install = { kind = "msi", args = [], success-codes = [0], reboot-codes = [1641, 3010] }
+integrity = { kind = "checksum-file", url = "https://nodejs.org/dist/v{version}/SHASUMS256.txt", file-name = "node-v{version}-x64.msi" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://nodejs.org/dist/v{version}/node-v{version}-x64.msi"
+[[item.package.source]]
+route = "official-release-api"
+url = "https://nodejs.org/download/release/v{version}/node-v{version}-x64.msi"
+
+[[item.package]]
+os = "linux"
+arch = "x64"
+file = "tar-xz"
+detection = { kind = "command", program = "node", args = ["--version"] }
+install = { kind = "extract-user-local" }
+integrity = { kind = "checksum-file", url = "https://nodejs.org/dist/v{version}/SHASUMS256.txt", file-name = "node-v{version}-linux-x64.tar.xz" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://nodejs.org/dist/v{version}/node-v{version}-linux-x64.tar.xz"
+[[item.package.source]]
+route = "official-release-api"
+url = "https://nodejs.org/download/release/v{version}/node-v{version}-linux-x64.tar.xz"
+
+[[item]]
+id = "python"
+name = "Python"
+vendor = "Python Software Foundation"
+homepage = "https://www.python.org"
+license = "PSF-2.0"
+category = "runtime"
+channels = ["3.13", "3.12"]
+requires-admin = { windows = false, linux = false }
+notes = "Installed per user without elevation on Windows. On Linux use the distribution's Python."
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "command", program = "py", args = ["--version"] }
+install = { kind = "exe", args = ["/quiet", "InstallAllUsers=0", "PrependPath=0", "Include_test=0"], success-codes = [0], reboot-codes = [3010] }
+integrity = { kind = "pin-at-build" }
+signature = { authenticode-publisher = "Python Software Foundation" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://www.python.org/ftp/python/{version}/python-{version}-amd64.exe"
+
+# ---------------------------------------------------------------- Tools
+
+[[item]]
+id = "git"
+name = "Git"
+vendor = "Git for Windows project"
+homepage = "https://gitforwindows.org"
+license = "GPL-2.0"
+category = "tool"
+channels = ["2"]
+requires-admin = { windows = true, linux = false }
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "exe"
+detection = { kind = "command", program = "git", args = ["--version"] }
+install = { kind = "exe", args = ["/VERYSILENT", "/NORESTART", "/NOCANCEL", "/SP-", "/SUPPRESSMSGBOXES"], success-codes = [0] }
+integrity = { kind = "pin-at-build" }
+[[item.package.source]]
+route = "official-repository"
+url = "https://github.com/git-for-windows/git/releases/download/v{version}.windows.1/Git-{version}-64-bit.exe"
+
+[[item]]
+id = "redis-compatible"
+name = "Redis-compatible server (Valkey)"
+vendor = "Linux Foundation (Valkey)"
+homepage = "https://valkey.io"
+license = "BSD-3-Clause"
+category = "service"
+channels = ["8"]
+requires-admin = { windows = true, linux = true }
+notes = "No official Windows build exists. On Linux use distribution packages. Detection only; provide Custom sources to automate installation."
+
+[[item.package]]
+os = "linux"
+arch = "x64"
+file = "tar-gz"
+detection = { kind = "command", program = "valkey-server", args = ["--version"] }
+install = { kind = "extract-user-local" }
+integrity = { kind = "unverifiable" }
+
+[[item]]
+id = "nssm"
+name = "NSSM – the Non-Sucking Service Manager"
+vendor = "nssm.cc"
+homepage = "https://nssm.cc"
+license = "Public Domain"
+category = "tool"
+channels = ["2.24"]
+requires-admin = { windows = true, linux = false }
+notes = "NSSM is unmaintained, unsigned and publishes no checksums. The runtime installs Windows services natively; prefer a Service action. If you need NSSM, embed a copy you verified."
+
+[[item.package]]
+os = "windows"
+arch = "x64"
+file = "zip"
+detection = { kind = "command", program = "nssm", args = ["version"] }
+install = { kind = "extract-user-local" }
+integrity = { kind = "unverifiable" }
+[[item.package.source]]
+route = "official-direct"
+url = "https://nssm.cc/release/nssm-{version}.zip"

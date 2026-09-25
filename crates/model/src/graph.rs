@@ -23,7 +23,7 @@ use crate::project::Project;
 use crate::text::LocalizedText;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(tag = "step", rename_all = "kebab-case")]
+#[serde(tag = "step", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum Step {
     Start,
     /// OS, architecture, disk space, existing installation.

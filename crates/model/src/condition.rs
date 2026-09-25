@@ -11,7 +11,7 @@ use crate::platform::{Arch, Os};
 use crate::value::PathExpr;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(tag = "if", rename_all = "kebab-case")]
+#[serde(tag = "if", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum Condition {
     All {
         all: Vec<Condition>,

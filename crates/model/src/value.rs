@@ -49,7 +49,7 @@ impl PathExpr {
 /// Where a secret comes from at install time. Secrets are never stored in
 /// plaintext in the project file.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(tag = "from", rename_all = "kebab-case")]
+#[serde(tag = "from", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum SecretRef {
     /// Entered by the user in an installer input field (password field), or
     /// passed as `--set <field>=…` / environment variable in silent mode.
@@ -67,7 +67,7 @@ pub enum Value {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(tag = "ref", rename_all = "kebab-case")]
+#[serde(tag = "ref", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
 pub enum ValueRef {
     /// Value of a non-secret installer input field.
     Input { field: String },
