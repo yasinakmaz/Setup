@@ -134,16 +134,10 @@ pub trait ExtractObserver {
 pub struct PlainExtract;
 impl ExtractObserver for PlainExtract {}
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct ExtractOptions {
     /// fsync every file before renaming it. Slow for many small files.
     pub durable: bool,
-}
-
-impl Default for ExtractOptions {
-    fn default() -> Self {
-        ExtractOptions { durable: false }
-    }
 }
 
 /// Reusable buffers for extraction. Keep one per worker thread.

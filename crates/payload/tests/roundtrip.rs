@@ -256,7 +256,7 @@ fn rejects_unsafe_and_duplicate_paths_at_build_time() {
     .expect_err("must reject traversal");
     assert!(matches!(err, PayloadError::UnsafePath(..)));
 
-    let mut inputs = fx.inputs.clone();
+    let mut inputs = fx.inputs;
     inputs[1].rel_path = "APP.EXE".to_owned();
     let err = write::write_payload(
         &mut Vec::new(),
@@ -274,7 +274,7 @@ fn rejects_unsafe_and_duplicate_paths_at_build_time() {
 #[test]
 fn source_change_during_build_is_detected() {
     let fx = fixture();
-    let mut inputs = fx.inputs.clone();
+    let mut inputs = fx.inputs;
     inputs[2].size += 1;
     let err = write::write_payload(
         &mut Vec::new(),
