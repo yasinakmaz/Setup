@@ -74,6 +74,19 @@ pub fn platform_exit_code(code: i32) -> i32 {
     }
 }
 
+/// GUI-subsystem executables on Windows have no console; attach to the
+/// parent's so silent/console output reaches the terminal.
+#[cfg(windows)]
+#[allow(unsafe_code)]
+fn attach_parent_console() {
+    use windows_sys::Win32::System::Console::{ATTACH_PARENT_PROCESS, AttachConsole};
+    // SAFETY: no preconditions; failure (no parent console) is harmless.
+    unsafe { AttachConsole(ATTACH_PARENT_PROCESS) };
+}
+
+#[cfg(not(windows))]
+fn attach_parent_console() {}
+
 /// Runs the installer and exits the process.
 pub fn main(app: &'static app::App, gui: Option<Gui>) -> ! {
     let cli = match cli::parse(std::env::args_os().skip(1)) {
@@ -94,6 +107,10 @@ pub fn main(app: &'static app::App, gui: Option<Gui>) -> ! {
         std::process::exit(0);
     }
     let session = Session::new(app, cli);
+    let use_gui = gui.is_some() && !session.cli.silent && platform::has_display() && !session.cli.verify_only;
+    if !use_gui {
+        attach_parent_console();
+    }
     let code = if session.cli.verify_only {
         console::verify(&session)
     } else {

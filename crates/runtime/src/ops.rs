@@ -47,7 +47,7 @@ impl Install<'_> {
             "os" => &format!("{:?}", self.c.env.os), "arch" => &format!("{:?}", self.c.env.arch),
             "elevated" => self.c.env.elevated, "mode" => &format!("{:?}", self.options.mode));
 
-        if settings.scope == Scope::Machine && !self.c.env.elevated {
+        if (settings.requires_elevation || settings.scope == Scope::Machine) && !self.c.env.elevated {
             return Err(InstallError::new(
                 ErrorKind::RequiresAdmin,
                 "a machine-wide installation needs administrator/root rights",

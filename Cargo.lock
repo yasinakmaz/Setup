@@ -254,6 +254,14 @@ version = "0.1.0"
 [[package]]
 name = "inst-codegen"
 version = "0.1.0"
+dependencies = [
+ "inst-brand",
+ "inst-fsx",
+ "inst-i18n",
+ "inst-model",
+ "tempfile",
+ "toml",
+]
 
 [[package]]
 name = "inst-doctor"

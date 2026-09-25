@@ -151,6 +151,9 @@ impl Field {
 /// Everything the UI and engine need to know about the installer.
 pub struct Settings {
     pub scope: Scope,
+    /// The installation graph contains machine-wide operations; the
+    /// installer must run as administrator/root.
+    pub requires_elevation: bool,
     /// Folder name below the scope's base directory.
     pub folder: &'static str,
     pub allow_change_location: bool,

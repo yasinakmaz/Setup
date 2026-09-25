@@ -42,6 +42,7 @@ const POLICY: Policy = Policy {
 
 static SETTINGS: Settings = Settings {
     scope: Scope::User,
+    requires_elevation: false,
     folder: "Acme Test",
     allow_change_location: true,
     languages: &[Language::En],

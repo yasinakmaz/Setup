@@ -34,6 +34,10 @@ pub enum Arg {
     /// Value of a password field (redacted in logs).
     Secret(&'static str),
     Input(&'static str),
+    /// `prefix` + secret value, e.g. `PASSWORD=…`.
+    PrefixedSecret(&'static str, &'static str),
+    /// `prefix` + input value.
+    PrefixedInput(&'static str, &'static str),
 }
 
 /// A prerequisite resolved at build time.
@@ -309,6 +313,15 @@ impl Install<'_> {
                     Arg::Input(id) => self.resolve(&crate::spec::Value::Input(id))?,
                     Arg::Secret(id) => {
                         self.resolve(&crate::spec::Value::Secret(crate::spec::Secret::Input(id)))?
+                    }
+                    Arg::PrefixedInput(prefix, id) => {
+                        format!("{prefix}{}", self.resolve(&crate::spec::Value::Input(id))?)
+                    }
+                    Arg::PrefixedSecret(prefix, id) => {
+                        let v = self.resolve(&crate::spec::Value::Secret(crate::spec::Secret::Input(id)))?;
+                        let arg = format!("{prefix}{v}");
+                        self.c.logger.redactor().register(&arg);
+                        arg
                     }
                 });
             }
