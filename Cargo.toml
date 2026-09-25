@@ -1,0 +1,118 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/brand",
+    "crates/model",
+    "crates/wire",
+    "crates/fsx",
+    "crates/log",
+    "crates/i18n",
+    "crates/payload",
+    "crates/fetch",
+    "crates/catalog",
+    "crates/runtime",
+    "crates/analyzer",
+    "crates/doctor",
+    "crates/codegen",
+    "crates/builder",
+    "crates/cli",
+]
+default-members = [
+    "crates/brand",
+    "crates/model",
+    "crates/wire",
+    "crates/fsx",
+    "crates/log",
+    "crates/i18n",
+    "crates/payload",
+    "crates/fetch",
+    "crates/catalog",
+    "crates/runtime",
+    "crates/analyzer",
+    "crates/doctor",
+    "crates/codegen",
+    "crates/builder",
+    "crates/cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "UNLICENSED"
+publish = false
+
+[workspace.dependencies]
+# Internal crates. Package names are brand-neutral (`inst-*` = installer);
+# the product name lives only in `inst-brand`.
+inst-brand = { path = "crates/brand" }
+inst-model = { path = "crates/model" }
+inst-wire = { path = "crates/wire" }
+inst-fsx = { path = "crates/fsx" }
+inst-log = { path = "crates/log" }
+inst-i18n = { path = "crates/i18n", default-features = false }
+inst-payload = { path = "crates/payload", default-features = false }
+inst-fetch = { path = "crates/fetch", default-features = false }
+inst-catalog = { path = "crates/catalog" }
+inst-runtime = { path = "crates/runtime", default-features = false }
+inst-analyzer = { path = "crates/analyzer" }
+inst-doctor = { path = "crates/doctor" }
+inst-codegen = { path = "crates/codegen" }
+inst-builder = { path = "crates/builder" }
+
+# External crates. Default features are off unless there is a reason.
+blake3 = { version = "1.8", default-features = false, features = ["std"] }
+zstd = { version = "0.14", default-features = false }
+liblzma = { version = "0.4", default-features = false, features = ["static"] }
+serde = { version = "1", default-features = false, features = ["std", "derive"] }
+toml = { version = "0.9", default-features = false, features = ["parse", "display", "serde"] }
+pelite = { version = "0.10", default-features = false, features = ["std"] }
+goblin = { version = "0.10", default-features = false, features = ["std", "elf32", "elf64", "endian_fd"] }
+ureq = { version = "3", default-features = false, features = ["rustls"] }
+rayon = "1.12"
+windows-sys = "0.61"
+sys-locale = "0.3"
+tempfile = "3"
+proptest = { version = "1", default-features = false, features = ["std"] }
+
+[profile.dev]
+opt-level = 0
+debug = "line-tables-only"
+
+# Hashing and compression are unusably slow unoptimized; keep tests realistic.
+[profile.dev.package.blake3]
+opt-level = 3
+[profile.dev.package.zstd-sys]
+opt-level = 3
+[profile.dev.package.liblzma-sys]
+opt-level = 3
+
+# Developer Studio release: maximum runtime performance, binary size is not a goal.
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+incremental = false
+debug-assertions = false
+overflow-checks = false
+strip = "debuginfo"
+
+# Release + symbols for profilers (perf, samply, VTune) and PGO/BOLT pipelines.
+[profile.profiling]
+inherits = "release"
+debug = "line-tables-only"
+strip = "none"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_must_use = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+dbg_macro = "warn"
+todo = "warn"
+unwrap_used = "warn"
+redundant_clone = "warn"
+needless_collect = "warn"
+inefficient_to_string = "warn"
+large_types_passed_by_value = "warn"

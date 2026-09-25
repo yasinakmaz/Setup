@@ -1,0 +1,33 @@
+[package]
+name = "inst-payload"
+description = "Installer payload format: solid/grouped-solid blocks, streaming extraction, integrity."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["read", "write", "zstd", "xz"]
+# Streaming extraction (generated installers).
+read = []
+# Payload creation (Studio).
+write = ["dep:tempfile"]
+# Codecs. The installer compiles only the decoders its payload uses.
+zstd = ["dep:zstd"]
+xz = ["dep:liblzma"]
+
+[dependencies]
+inst-wire.workspace = true
+inst-fsx.workspace = true
+blake3.workspace = true
+zstd = { workspace = true, optional = true }
+liblzma = { workspace = true, optional = true }
+tempfile = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile.workspace = true
+proptest.workspace = true

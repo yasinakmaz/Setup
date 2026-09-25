@@ -1,0 +1,12 @@
+[package]
+name = "inst-analyzer"
+description = "Project analyzer: application metadata, dependencies and suggestions."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+

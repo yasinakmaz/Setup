@@ -1,0 +1,30 @@
+[package]
+name = "inst-i18n"
+description = "Languages, text direction, locale detection and built-in installer strings."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = ["all-languages", "detect"]
+# Each language is a separate feature so that a generated installer compiles
+# only the string tables of the languages the project enables.
+lang-tr = []
+lang-ar = []
+lang-es = []
+lang-fr = []
+lang-de = []
+lang-ru = []
+all-languages = ["lang-tr", "lang-ar", "lang-es", "lang-fr", "lang-de", "lang-ru"]
+# System locale detection.
+detect = ["dep:sys-locale"]
+serde = ["dep:serde"]
+
+[dependencies]
+sys-locale = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

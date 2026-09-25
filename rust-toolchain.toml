@@ -1,0 +1,6 @@
+[toolchain]
+# Pinned for reproducible builds. GPUI (gpui-pre 0.3.x) needs Rust >= 1.95.
+channel = "1.98.1"
+components = ["rustfmt", "clippy"]
+targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-gnu"]
+profile = "minimal"

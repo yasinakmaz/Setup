@@ -1,0 +1,13 @@
+[package]
+name = "inst-model"
+description = "Typed project model, installation graph, policies and privilege analysis."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
