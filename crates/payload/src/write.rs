@@ -142,8 +142,8 @@ fn compress_block(
         buf.resize(opts.buffer_size.max(4096), 0);
         for &i in &plan.files {
             let input = &inputs[i];
-            let mut file = File::open(&input.source)
-                .map_err(|e| PayloadError::source(&input.source, e))?;
+            let mut file =
+                File::open(&input.source).map_err(|e| PayloadError::source(&input.source, e))?;
             let mut hasher = blake3::Hasher::new();
             let mut read_total = 0u64;
             loop {
@@ -188,7 +188,11 @@ fn compress_block(
 
 /// Validates the plan: every input used exactly once, paths safe and unique
 /// (case-insensitively, because Windows file systems are).
-fn validate_plan(inputs: &[InputFile], blocks: &[BlockPlan], dirs: &[String]) -> Result<(), PayloadError> {
+fn validate_plan(
+    inputs: &[InputFile],
+    blocks: &[BlockPlan],
+    dirs: &[String],
+) -> Result<(), PayloadError> {
     let mut used = vec![false; inputs.len()];
     for plan in blocks {
         for &i in &plan.files {
@@ -390,7 +394,9 @@ pub fn append_to_executable(
     let mut file = std::fs::OpenOptions::new().append(true).open(exe_path)?;
     let prefix_len = file.metadata()?.len();
     let mut out = BufWriter::with_capacity(1 << 20, &mut file);
-    let summary = write_payload(&mut out, prefix_len, inputs, blocks, empty_dirs, opts, observer)?;
+    let summary = write_payload(
+        &mut out, prefix_len, inputs, blocks, empty_dirs, opts, observer,
+    )?;
     out.flush()?;
     drop(out);
     file.sync_all()?;

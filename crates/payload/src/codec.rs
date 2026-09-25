@@ -92,7 +92,9 @@ pub fn decoder<'a, R: BufRead + 'a>(codec: Codec, input: R) -> io::Result<Box<dy
         Codec::Xz => {
             let stream = liblzma::stream::Stream::new_stream_decoder(XZ_DECODER_MEMLIMIT, 0)
                 .map_err(io::Error::other)?;
-            Ok(Box::new(liblzma::bufread::XzDecoder::new_stream(input, stream)))
+            Ok(Box::new(liblzma::bufread::XzDecoder::new_stream(
+                input, stream,
+            )))
         }
         #[allow(unreachable_patterns)]
         other => Err(unsupported(other)),
@@ -213,7 +215,9 @@ mod tests {
 
     #[test]
     fn all_codecs_roundtrip() {
-        let data: Vec<u8> = (0..200_000u32).flat_map(|i| (i % 251).to_le_bytes()).collect();
+        let data: Vec<u8> = (0..200_000u32)
+            .flat_map(|i| (i % 251).to_le_bytes())
+            .collect();
         roundtrip(CodecParams::STORED, &data);
         #[cfg(feature = "zstd")]
         {

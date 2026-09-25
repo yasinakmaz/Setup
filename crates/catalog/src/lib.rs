@@ -152,7 +152,11 @@ pub fn redundancy(package: &Package) -> Redundancy {
     if matches!(package.integrity, IntegrityStrategy::Unverifiable) || package.sources.is_empty() {
         return Redundancy::Unavailable;
     }
-    let hosts: BTreeSet<&str> = package.sources.iter().filter_map(|s| host(&s.url)).collect();
+    let hosts: BTreeSet<&str> = package
+        .sources
+        .iter()
+        .filter_map(|s| host(&s.url))
+        .collect();
     let routes = hosts.len();
     if routes >= REQUIRED_ROUTES {
         Redundancy::Full { routes }
@@ -219,11 +223,20 @@ mod tests {
     #[test]
     fn redundancy_is_reported_honestly() {
         let c = Catalog::builtin();
-        let mysql = c.get("mysql").and_then(|i| i.package(Os::Windows, Arch::X64)).expect("pkg");
+        let mysql = c
+            .get("mysql")
+            .and_then(|i| i.package(Os::Windows, Arch::X64))
+            .expect("pkg");
         assert_eq!(redundancy(mysql), Redundancy::Full { routes: 3 });
-        let vc = c.get("vc-redist").and_then(|i| i.package(Os::Windows, Arch::X64)).expect("pkg");
+        let vc = c
+            .get("vc-redist")
+            .and_then(|i| i.package(Os::Windows, Arch::X64))
+            .expect("pkg");
         assert_eq!(redundancy(vc), Redundancy::Degraded { routes: 1 });
-        let nssm = c.get("nssm").and_then(|i| i.package(Os::Windows, Arch::X64)).expect("pkg");
+        let nssm = c
+            .get("nssm")
+            .and_then(|i| i.package(Os::Windows, Arch::X64))
+            .expect("pkg");
         assert_eq!(redundancy(nssm), Redundancy::Unavailable);
     }
 
@@ -246,7 +259,10 @@ channels = ["22"]
         )
         .expect("merge");
         assert_eq!(c.items().len(), n);
-        assert_eq!(c.get("nodejs").map(|i| i.name.as_str()), Some("Node.js (company mirror)"));
+        assert_eq!(
+            c.get("nodejs").map(|i| i.name.as_str()),
+            Some("Node.js (company mirror)")
+        );
         assert_eq!(c.origin("nodejs"), Some("company.toml"));
     }
 

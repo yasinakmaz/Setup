@@ -118,7 +118,11 @@ pub struct SourceDef {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "kind",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum Detection {
     /// A registry value exists (optionally with a version in another value).
     Registry {
@@ -179,10 +183,18 @@ fn zero() -> Vec<i32> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "kind",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum IntegrityStrategy {
     /// .NET release metadata JSON publishes a SHA-512 per file.
-    DotnetReleaseMetadata { metadata_url: String, component: String, file_name: String },
+    DotnetReleaseMetadata {
+        metadata_url: String,
+        component: String,
+        file_name: String,
+    },
     /// A vendor checksum file (`SHASUMS256.txt` style: `<hex>  <file>`).
     ChecksumFile { url: String, file_name: String },
     /// No vendor checksum: the Studio downloads the file at build time,

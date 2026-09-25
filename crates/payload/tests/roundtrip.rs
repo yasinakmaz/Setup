@@ -20,12 +20,30 @@ fn fixture() -> Fixture {
     let dir = tempfile::tempdir().expect("tempdir");
     let src = dir.path().join("src");
     let files: Vec<(&str, Vec<u8>, bool)> = vec![
-        ("app.exe", (0..300_000u32).flat_map(|i| (i * 7).to_le_bytes()).collect(), true),
-        ("lib/libfoo.so.1", b"\x7fELF fake library".repeat(5000), true),
+        (
+            "app.exe",
+            (0..300_000u32)
+                .flat_map(|i| (i * 7).to_le_bytes())
+                .collect(),
+            true,
+        ),
+        (
+            "lib/libfoo.so.1",
+            b"\x7fELF fake library".repeat(5000),
+            true,
+        ),
         ("data/config.json", br#"{"key": "value"}"#.to_vec(), false),
         ("data/empty.txt", Vec::new(), false),
-        ("docs/ملف عربي.txt", "مرحبا بالعالم".repeat(100).into_bytes(), false),
-        ("docs/Türkçe.md", "Kurulum tamamlandı".repeat(50).into_bytes(), false),
+        (
+            "docs/ملف عربي.txt",
+            "مرحبا بالعالم".repeat(100).into_bytes(),
+            false,
+        ),
+        (
+            "docs/Türkçe.md",
+            "Kurulum tamamlandı".repeat(50).into_bytes(),
+            false,
+        ),
     ];
     let mut inputs = Vec::new();
     for (rel, content, exec) in files {
@@ -122,7 +140,11 @@ fn roundtrip_every_codec_and_block_layout() {
         vec![CodecParams::zstd(3)],
         vec![CodecParams::xz(6, Filter::X86)],
         // Grouped-solid with mixed codecs.
-        vec![CodecParams::zstd(1), CodecParams::xz(1, Filter::None), CodecParams::STORED],
+        vec![
+            CodecParams::zstd(1),
+            CodecParams::xz(1, Filter::None),
+            CodecParams::STORED,
+        ],
     ];
     for layout in layouts {
         let (bytes, summary) = build(&fx, &plans(&layout, n), b"MZ-fake-runtime-prefix");
@@ -143,7 +165,13 @@ fn preserves_executable_bit() {
     let (bytes, _) = build(&fx, &plans(&[CodecParams::zstd(3)], fx.inputs.len()), b"");
     let root = tempfile::tempdir().expect("tempdir");
     extract_all(&bytes, root.path()).expect("extract");
-    let mode = |p: &str| fs::metadata(root.path().join(p)).expect("meta").permissions().mode() & 0o777;
+    let mode = |p: &str| {
+        fs::metadata(root.path().join(p))
+            .expect("meta")
+            .permissions()
+            .mode()
+            & 0o777
+    };
     assert_eq!(mode("app.exe"), 0o755);
     assert_eq!(mode("data/config.json"), 0o644);
 }
@@ -161,7 +189,11 @@ fn no_payload_is_reported_as_not_found() {
 fn any_single_byte_corruption_is_detected_and_never_committed() {
     let fx = fixture();
     let n = fx.inputs.len();
-    for layout in [vec![CodecParams::zstd(3)], vec![CodecParams::STORED], vec![CodecParams::xz(1, Filter::None)]] {
+    for layout in [
+        vec![CodecParams::zstd(3)],
+        vec![CodecParams::STORED],
+        vec![CodecParams::xz(1, Filter::None)],
+    ] {
         let prefix = b"PREFIX";
         let (bytes, summary) = build(&fx, &plans(&layout, n), prefix);
         let payload_start = prefix.len();
@@ -191,7 +223,10 @@ fn any_single_byte_corruption_is_detected_and_never_committed() {
                     for input in &fx.inputs {
                         let p = root.path().join(&input.rel_path);
                         if p.exists() {
-                            assert_eq!(fs::read(&p).expect("read"), fs::read(&input.source).expect("read"));
+                            assert_eq!(
+                                fs::read(&p).expect("read"),
+                                fs::read(&input.source).expect("read")
+                            );
                         }
                     }
                 }
@@ -225,7 +260,11 @@ fn authenticode_style_trailer_is_skipped() {
     let opt = 0x80 + 24;
     prefix[opt..opt + 2].copy_from_slice(&0x20bu16.to_le_bytes());
     prefix[opt + 108..opt + 112].copy_from_slice(&16u32.to_le_bytes());
-    let (mut bytes, _) = build(&fx, &plans(&[CodecParams::zstd(3)], fx.inputs.len()), &prefix);
+    let (mut bytes, _) = build(
+        &fx,
+        &plans(&[CodecParams::zstd(3)], fx.inputs.len()),
+        &prefix,
+    );
     let cert_offset = bytes.len() as u32;
     let cert = vec![0xabu8; 1000];
     bytes.extend_from_slice(&cert);
@@ -298,7 +337,10 @@ fn existing_symlink_target_is_refused() {
         let root = tempfile::tempdir().expect("tempdir");
         let outside = tempfile::tempdir().expect("tempdir");
         let victim = outside.path().join("victim");
-        File::create(&victim).expect("create").write_all(b"keep").expect("write");
+        File::create(&victim)
+            .expect("create")
+            .write_all(b"keep")
+            .expect("write");
         std::os::unix::fs::symlink(&victim, root.path().join("app.exe")).expect("symlink");
         let err = extract_all(&bytes, root.path()).expect_err("must refuse symlink");
         assert!(matches!(err, PayloadError::Io(_)), "{err}");
@@ -330,7 +372,10 @@ mod hostile {
         let (bytes, summary) = build(&fx, &plans(&[CodecParams::STORED], fx.inputs.len()), b"");
         let mut encoded = Vec::new();
         summary.index.encode(&mut encoded);
-        assert_eq!(Index::decode(&encoded, u64::MAX).expect("decode"), summary.index);
+        assert_eq!(
+            Index::decode(&encoded, u64::MAX).expect("decode"),
+            summary.index
+        );
         for i in 0..encoded.len() {
             for mask in [0x01u8, 0x80, 0xff] {
                 let mut m = encoded.clone();

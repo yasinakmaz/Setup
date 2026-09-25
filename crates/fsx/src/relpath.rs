@@ -45,9 +45,7 @@ impl fmt::Display for PathError {
             PathError::DotComponent => f.write_str("path contains '.' or '..'"),
             PathError::InvalidChar(c) => write!(f, "path contains invalid character {c:?}"),
             PathError::ReservedName => f.write_str("path uses a reserved device name"),
-            PathError::TrailingDotOrSpace => {
-                f.write_str("path component ends with a dot or space")
-            }
+            PathError::TrailingDotOrSpace => f.write_str("path component ends with a dot or space"),
             PathError::ComponentTooLong => f.write_str("path component is too long"),
         }
     }
@@ -233,7 +231,10 @@ mod tests {
     #[test]
     fn rejects_windows_specials() {
         assert_eq!(validate("C:/Windows"), Err(PathError::InvalidChar(':')));
-        assert_eq!(validate("file.txt:stream"), Err(PathError::InvalidChar(':')));
+        assert_eq!(
+            validate("file.txt:stream"),
+            Err(PathError::InvalidChar(':'))
+        );
         assert_eq!(validate("a\\..\\b"), Err(PathError::InvalidChar('\\')));
         assert_eq!(validate("dir/NUL"), Err(PathError::ReservedName));
         assert_eq!(validate("com1.txt"), Err(PathError::ReservedName));

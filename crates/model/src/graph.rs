@@ -12,8 +12,8 @@
 //! and emits straight-line Rust with one boolean per node.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BinaryHeap;
 use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::fmt;
 
 use crate::action::{ActionKind, LifecycleEvent};
@@ -23,7 +23,11 @@ use crate::project::Project;
 use crate::text::LocalizedText;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(tag = "step", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "step",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum Step {
     Start,
     /// OS, architecture, disk space, existing installation.
@@ -36,9 +40,13 @@ pub enum Step {
     /// Resolve (or let the user choose) the installation directory.
     ResolveLocation,
     /// Run the actions attached to a lifecycle event.
-    RunActions { event: LifecycleEvent },
+    RunActions {
+        event: LifecycleEvent,
+    },
     /// Run one specific action.
-    RunAction { action: String },
+    RunAction {
+        action: String,
+    },
     ExtractApplication,
     /// Database actions attached to `after-install`.
     ConfigureDatabase,
@@ -174,7 +182,10 @@ impl fmt::Display for GraphIssue {
                 write!(f, "'{before}' must come before '{after}'")
             }
             GraphIssue::ConditionalCriticalStep(step) => {
-                write!(f, "'{step}' is conditional; the installation may be incomplete")
+                write!(
+                    f,
+                    "'{step}' is conditional; the installation may be incomplete"
+                )
             }
         }
     }
@@ -199,9 +210,10 @@ impl InstallGraph {
             .iter()
             .any(|p| p.acquisition != crate::project::Acquisition::Embedded);
         let has = |step: Step| {
-            project.actions.iter().any(|a| {
-                a.enabled && a.event.is_some_and(|e| implicit_step(&a.kind, e) == step)
-            })
+            project
+                .actions
+                .iter()
+                .any(|a| a.enabled && a.event.is_some_and(|e| implicit_step(&a.kind, e) == step))
         };
         let integ = &project.integration;
         let has_integration = !integ.file_associations.is_empty()
@@ -410,7 +422,11 @@ impl InstallGraph {
         let order_rules: [(&Step, &[Step]); 2] = [
             (
                 &Step::ResolveLocation,
-                &[Step::ExtractApplication, Step::CreateShortcuts, Step::RegisterUninstaller],
+                &[
+                    Step::ExtractApplication,
+                    Step::CreateShortcuts,
+                    Step::RegisterUninstaller,
+                ],
             ),
             (
                 &Step::ExtractApplication,
@@ -498,7 +514,10 @@ mod tests {
                 "Finish"
             ]
         );
-        assert_eq!(g.topo_order().expect("dag"), (0..g.nodes.len()).collect::<Vec<_>>());
+        assert_eq!(
+            g.topo_order().expect("dag"),
+            (0..g.nodes.len()).collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -510,11 +529,23 @@ mod tests {
             to: "extract".into(),
             condition: None,
         });
-        assert!(g.validate(&p).iter().any(|i| matches!(i, GraphIssue::Cycle(_))));
+        assert!(
+            g.validate(&p)
+                .iter()
+                .any(|i| matches!(i, GraphIssue::Cycle(_)))
+        );
 
         let mut g = InstallGraph::default_for(&p);
-        g.nodes.push(Node::new("orphan", Step::RunActions { event: LifecycleEvent::AfterInstall }));
-        assert!(g.validate(&p).contains(&GraphIssue::Unreachable("orphan".into())));
+        g.nodes.push(Node::new(
+            "orphan",
+            Step::RunActions {
+                event: LifecycleEvent::AfterInstall,
+            },
+        ));
+        assert!(
+            g.validate(&p)
+                .contains(&GraphIssue::Unreachable("orphan".into()))
+        );
     }
 
     #[test]
@@ -522,9 +553,15 @@ mod tests {
         let p = project();
         let mut g = InstallGraph::default_for(&p);
         // extract → (Windows) win-task → shortcuts ; extract → (Linux) linux-task → shortcuts
-        g.edges.retain(|e| !(e.from == "extract" && e.to == "create-shortcuts"));
+        g.edges
+            .retain(|e| !(e.from == "extract" && e.to == "create-shortcuts"));
         for (id, os) in [("win-task", Os::Windows), ("linux-task", Os::Linux)] {
-            g.nodes.push(Node::new(id, Step::RunActions { event: LifecycleEvent::AfterInstall }));
+            g.nodes.push(Node::new(
+                id,
+                Step::RunActions {
+                    event: LifecycleEvent::AfterInstall,
+                },
+            ));
             g.edges.push(Edge {
                 from: "extract".into(),
                 to: id.into(),
@@ -538,7 +575,12 @@ mod tests {
         }
         assert_eq!(g.validate(&p), vec![]);
         let order = g.topo_order().expect("dag");
-        let pos = |id: &str| order.iter().position(|&i| g.nodes[i].id == id).expect("node");
+        let pos = |id: &str| {
+            order
+                .iter()
+                .position(|&i| g.nodes[i].id == id)
+                .expect("node")
+        };
         assert!(pos("extract") < pos("win-task") && pos("win-task") < pos("create-shortcuts"));
     }
 
@@ -564,7 +606,16 @@ mod tests {
         })
         .collect();
         let issues = g.validate(&p);
-        assert!(issues.iter().any(|i| matches!(i, GraphIssue::OrderViolation { after: "Create Shortcuts", .. })), "{issues:?}");
+        assert!(
+            issues.iter().any(|i| matches!(
+                i,
+                GraphIssue::OrderViolation {
+                    after: "Create Shortcuts",
+                    ..
+                }
+            )),
+            "{issues:?}"
+        );
     }
 
     #[test]

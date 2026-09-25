@@ -118,7 +118,9 @@ impl Target {
     pub const fn rust_triples(self) -> &'static [&'static str] {
         match (self.os, self.arch) {
             (Os::Windows, Arch::X64) => &["x86_64-pc-windows-msvc", "x86_64-pc-windows-gnu"],
-            (Os::Windows, Arch::Arm64) => &["aarch64-pc-windows-msvc", "aarch64-pc-windows-gnullvm"],
+            (Os::Windows, Arch::Arm64) => {
+                &["aarch64-pc-windows-msvc", "aarch64-pc-windows-gnullvm"]
+            }
             (Os::Linux, Arch::X64) => &["x86_64-unknown-linux-gnu"],
             (Os::Linux, Arch::Arm64) => &["aarch64-unknown-linux-gnu"],
         }
@@ -158,7 +160,10 @@ mod tests {
     #[test]
     fn artifact_names() {
         let stem = file_stem("Acme Orders");
-        assert_eq!(Target::WINDOWS_X64.artifact_name(&stem), "Acme-Orders-Setup-x64.exe");
+        assert_eq!(
+            Target::WINDOWS_X64.artifact_name(&stem),
+            "Acme-Orders-Setup-x64.exe"
+        );
         assert_eq!(
             Target::LINUX_X64.artifact_name(&stem),
             "Acme-Orders-Setup-x86_64.AppImage"

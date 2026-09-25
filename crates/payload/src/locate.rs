@@ -15,7 +15,10 @@ pub fn logical_end<R: Read + Seek>(r: &mut R, file_len: u64) -> io::Result<u64> 
 
 /// If `r` is a PE image whose certificate table occupies the end of the file,
 /// returns the table's start offset.
-pub fn authenticode_table_start<R: Read + Seek>(r: &mut R, file_len: u64) -> io::Result<Option<u64>> {
+pub fn authenticode_table_start<R: Read + Seek>(
+    r: &mut R,
+    file_len: u64,
+) -> io::Result<Option<u64>> {
     if file_len < 0x40 {
         return Ok(None);
     }
@@ -25,7 +28,9 @@ pub fn authenticode_table_start<R: Read + Seek>(r: &mut R, file_len: u64) -> io:
     if &dos[..2] != b"MZ" {
         return Ok(None);
     }
-    let e_lfanew = u64::from(u32::from_le_bytes([dos[0x3c], dos[0x3d], dos[0x3e], dos[0x3f]]));
+    let e_lfanew = u64::from(u32::from_le_bytes([
+        dos[0x3c], dos[0x3d], dos[0x3e], dos[0x3f],
+    ]));
     // "PE\0\0" + COFF header (20 bytes) + optional header magic (2 bytes).
     if e_lfanew.saturating_add(26) > file_len {
         return Ok(None);
@@ -40,7 +45,7 @@ pub fn authenticode_table_start<R: Read + Seek>(r: &mut R, file_len: u64) -> io:
     let opt_start = e_lfanew + 24;
     let magic = u16::from_le_bytes([pe[24], pe[25]]);
     let (count_off, dirs_off) = match magic {
-        0x10b => (92u64, 96u64),  // PE32
+        0x10b => (92u64, 96u64),   // PE32
         0x20b => (108u64, 112u64), // PE32+
         _ => return Ok(None),
     };

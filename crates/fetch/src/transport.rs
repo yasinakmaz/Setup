@@ -48,7 +48,12 @@ impl std::error::Error for TransportError {}
 pub trait Transport: Send + Sync {
     /// GET `url`. When `range_start > 0` a `Range: bytes=<start>-` header is
     /// sent, with `If-Range: <validator>` when a validator is known.
-    fn get(&self, url: &str, range_start: u64, if_range: Option<&str>) -> Result<Response, TransportError>;
+    fn get(
+        &self,
+        url: &str,
+        range_start: u64,
+        if_range: Option<&str>,
+    ) -> Result<Response, TransportError>;
 }
 
 #[derive(Clone, Debug)]
@@ -85,7 +90,11 @@ impl Default for TransportConfig {
             proxy: ProxySetting::FromEnvironment,
             allow_insecure_http: false,
             max_redirects: 5,
-            user_agent: format!("{}/{}", inst_brand::RUNTIME_NAME.replace(' ', "-"), env!("CARGO_PKG_VERSION")),
+            user_agent: format!(
+                "{}/{}",
+                inst_brand::RUNTIME_NAME.replace(' ', "-"),
+                env!("CARGO_PKG_VERSION")
+            ),
         }
     }
 }
@@ -108,9 +117,9 @@ mod ureq_impl {
             let proxy = match &config.proxy {
                 ProxySetting::FromEnvironment => ureq::Proxy::try_from_env(),
                 ProxySetting::None => None,
-                ProxySetting::Url(url) => Some(
-                    ureq::Proxy::new(url).map_err(|e| TransportError::Other(e.to_string()))?,
-                ),
+                ProxySetting::Url(url) => {
+                    Some(ureq::Proxy::new(url).map_err(|e| TransportError::Other(e.to_string()))?)
+                }
             };
             let tls = TlsConfig::builder()
                 .root_certs(RootCerts::PlatformVerifier)
@@ -137,7 +146,9 @@ mod ureq_impl {
     fn classify(e: ureq::Error) -> TransportError {
         match e {
             ureq::Error::Timeout(_) => TransportError::Timeout,
-            ureq::Error::Io(io) if io.kind() == std::io::ErrorKind::TimedOut => TransportError::Timeout,
+            ureq::Error::Io(io) if io.kind() == std::io::ErrorKind::TimedOut => {
+                TransportError::Timeout
+            }
             ureq::Error::RequireHttpsOnly(u) => TransportError::Forbidden(u),
             other => TransportError::Connection(other.to_string()),
         }
@@ -154,7 +165,12 @@ mod ureq_impl {
     }
 
     impl Transport for UreqTransport {
-        fn get(&self, url: &str, range_start: u64, if_range: Option<&str>) -> Result<Response, TransportError> {
+        fn get(
+            &self,
+            url: &str,
+            range_start: u64,
+            if_range: Option<&str>,
+        ) -> Result<Response, TransportError> {
             if !self.allow_insecure_http && !url.starts_with("https://") {
                 return Err(TransportError::Forbidden(url.to_owned()));
             }
@@ -173,7 +189,8 @@ mod ureq_impl {
                 .filter(|e| !e.starts_with("W/"))
                 .or_else(|| header("last-modified"))
                 .map(str::to_owned);
-            let content_len: Option<u64> = header("content-length").and_then(|v| v.trim().parse().ok());
+            let content_len: Option<u64> =
+                header("content-length").and_then(|v| v.trim().parse().ok());
             let (range_start, total_len) = if status == 206 {
                 match header("content-range").and_then(parse_content_range) {
                     Some((start, total)) => (start, total),
@@ -197,7 +214,10 @@ mod ureq_impl {
     mod tests {
         #[test]
         fn content_range() {
-            assert_eq!(super::parse_content_range("bytes 100-199/1000"), Some((100, Some(1000))));
+            assert_eq!(
+                super::parse_content_range("bytes 100-199/1000"),
+                Some((100, Some(1000)))
+            );
             assert_eq!(super::parse_content_range("bytes 5-9/*"), Some((5, None)));
             assert_eq!(super::parse_content_range("items 1-2/3"), None);
         }

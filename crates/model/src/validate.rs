@@ -36,14 +36,23 @@ impl fmt::Display for Diagnostic {
             Severity::Error => "error",
             Severity::Warning => "warning",
         };
-        write!(f, "{sev}[{}] {}: {}", self.code, self.location, self.message)
+        write!(
+            f,
+            "{sev}[{}] {}: {}",
+            self.code, self.location, self.message
+        )
     }
 }
 
 struct Sink(Vec<Diagnostic>);
 
 impl Sink {
-    fn error(&mut self, code: &'static str, location: impl Into<String>, message: impl Into<String>) {
+    fn error(
+        &mut self,
+        code: &'static str,
+        location: impl Into<String>,
+        message: impl Into<String>,
+    ) {
         self.0.push(Diagnostic {
             severity: Severity::Error,
             code,
@@ -51,7 +60,12 @@ impl Sink {
             message: message.into(),
         });
     }
-    fn warn(&mut self, code: &'static str, location: impl Into<String>, message: impl Into<String>) {
+    fn warn(
+        &mut self,
+        code: &'static str,
+        location: impl Into<String>,
+        message: impl Into<String>,
+    ) {
         self.0.push(Diagnostic {
             severity: Severity::Warning,
             code,
@@ -66,19 +80,28 @@ pub fn validate(project: &Project, facts: &dyn PrerequisiteFacts) -> Vec<Diagnos
     let p = project;
 
     if p.schema != crate::project::SCHEMA_VERSION {
-        d.error("M0001", "schema", format!("unsupported schema version {}", p.schema));
+        d.error(
+            "M0001",
+            "schema",
+            format!("unsupported schema version {}", p.schema),
+        );
     }
     if p.product.name.trim().is_empty() {
         d.error("M0101", "product.name", "product name is empty");
     }
     if p.product.publisher.trim().is_empty() {
-        d.warn("M0102", "product.publisher", "publisher is empty; Installed Apps will show no publisher");
+        d.warn(
+            "M0102",
+            "product.publisher",
+            "publisher is empty; Installed Apps will show no publisher",
+        );
     }
     let targets = p.enabled_targets();
     if targets.is_empty() {
         d.error("M0103", "targets", "no output target is enabled");
     }
-    if targets.iter().any(|t| t.os == Os::Windows) && !p.product.version.fits_windows_file_version() {
+    if targets.iter().any(|t| t.os == Os::Windows) && !p.product.version.fits_windows_file_version()
+    {
         d.error(
             "M0104",
             "product.version",
@@ -93,30 +116,51 @@ pub fn validate(project: &Project, facts: &dyn PrerequisiteFacts) -> Vec<Diagnos
         ),
         Some(exe) => {
             if let Err(e) = inst_fsx::relpath::validate(exe) {
-                d.error("M0202", "application.main-executable", format!("invalid path: {e}"));
+                d.error(
+                    "M0202",
+                    "application.main-executable",
+                    format!("invalid path: {e}"),
+                );
             }
         }
     }
 
     // Languages.
     if p.ui.languages.is_empty() {
-        d.error("M0301", "ui.languages", "at least one language must be enabled");
+        d.error(
+            "M0301",
+            "ui.languages",
+            "at least one language must be enabled",
+        );
     } else if !p.ui.languages.contains(&p.ui.fallback_language) {
-        d.error("M0302", "ui.fallback-language", "fallback language is not enabled");
+        d.error(
+            "M0302",
+            "ui.fallback-language",
+            "fallback language is not enabled",
+        );
     }
 
     // Input fields.
     let mut field_ids = HashSet::new();
     for (i, f) in p.ui.fields.iter().enumerate() {
         if validate_local_id(&f.id).is_err() {
-            d.error("M0401", format!("ui.fields[{i}].id"), format!("invalid field id {:?}", f.id));
+            d.error(
+                "M0401",
+                format!("ui.fields[{i}].id"),
+                format!("invalid field id {:?}", f.id),
+            );
         }
         if !field_ids.insert(f.id.as_str()) {
-            d.error("M0402", format!("ui.fields[{i}].id"), format!("duplicate field id {:?}", f.id));
+            d.error(
+                "M0402",
+                format!("ui.fields[{i}].id"),
+                format!("duplicate field id {:?}", f.id),
+            );
         }
     }
     let field_kind = |id: &str| p.ui.fields.iter().find(|f| f.id == id).map(|f| &f.kind);
-    let check_value = |d: &mut Sink, loc: &str, v: &Value| match v {
+    let check_value = |d: &mut Sink, loc: &str, v: &Value| {
+        match v {
         Value::Ref(ValueRef::Input { field }) => match field_kind(field) {
             None => d.error("M0403", loc, format!("unknown input field {field:?}")),
             Some(InputKind::Password) => d.error(
@@ -138,6 +182,7 @@ pub fn validate(project: &Project, facts: &dyn PrerequisiteFacts) -> Vec<Diagnos
             ),
         },
         _ => {}
+    }
     };
 
     // Actions.
@@ -145,10 +190,18 @@ pub fn validate(project: &Project, facts: &dyn PrerequisiteFacts) -> Vec<Diagnos
     for (i, a) in p.actions.iter().enumerate() {
         let loc = format!("actions[{i}]");
         if validate_local_id(&a.id).is_err() {
-            d.error("M0501", format!("{loc}.id"), format!("invalid action id {:?}", a.id));
+            d.error(
+                "M0501",
+                format!("{loc}.id"),
+                format!("invalid action id {:?}", a.id),
+            );
         }
         if !action_ids.insert(a.id.as_str()) {
-            d.error("M0502", format!("{loc}.id"), format!("duplicate action id {:?}", a.id));
+            d.error(
+                "M0502",
+                format!("{loc}.id"),
+                format!("duplicate action id {:?}", a.id),
+            );
         }
         match &a.kind {
             ActionKind::Script(s) => {
@@ -157,40 +210,73 @@ pub fn validate(project: &Project, facts: &dyn PrerequisiteFacts) -> Vec<Diagnos
                 }
                 for name in s.env.keys() {
                     if name.is_empty() || name.contains(['=', '\0']) {
-                        d.error("M0503", format!("{loc}.env"), format!("invalid variable name {name:?}"));
+                        d.error(
+                            "M0503",
+                            format!("{loc}.env"),
+                            format!("invalid variable name {name:?}"),
+                        );
                     }
                 }
                 if s.allowed_exit_codes.is_empty() {
-                    d.error("M0504", format!("{loc}.allowed-exit-codes"), "no exit code is accepted");
+                    d.error(
+                        "M0504",
+                        format!("{loc}.allowed-exit-codes"),
+                        "no exit code is accepted",
+                    );
                 }
             }
             ActionKind::Http(h) => {
                 if h.url.starts_with("http://") {
-                    d.warn("M0510", format!("{loc}.url"), "plain HTTP is not encrypted; use https://");
+                    d.warn(
+                        "M0510",
+                        format!("{loc}.url"),
+                        "plain HTTP is not encrypted; use https://",
+                    );
                 } else if !h.url.starts_with("https://") {
-                    d.error("M0511", format!("{loc}.url"), "URL must start with https:// or http://");
+                    d.error(
+                        "M0511",
+                        format!("{loc}.url"),
+                        "URL must start with https:// or http://",
+                    );
                 }
                 for (_, v) in h.headers.iter().chain(&h.query) {
                     check_value(&mut d, &loc, v);
                 }
             }
             ActionKind::Database(db) => {
-                for v in [&db.connection.host, &db.connection.user, &db.connection.database]
-                    .into_iter()
-                    .flatten()
+                for v in [
+                    &db.connection.host,
+                    &db.connection.user,
+                    &db.connection.database,
+                ]
+                .into_iter()
+                .flatten()
                 {
                     check_value(&mut d, &loc, v);
                 }
-                if db.provider == crate::action::DbProvider::Sqlite && db.connection.file.is_none() {
-                    d.error("M0520", format!("{loc}.connection.file"), "SQLite needs a database file");
+                if db.provider == crate::action::DbProvider::Sqlite && db.connection.file.is_none()
+                {
+                    d.error(
+                        "M0520",
+                        format!("{loc}.connection.file"),
+                        "SQLite needs a database file",
+                    );
                 }
             }
             ActionKind::Service(s) => {
                 if s.name.is_empty() || s.name.contains(char::is_whitespace) {
-                    d.error("M0530", format!("{loc}.name"), "service names must not be empty or contain spaces");
+                    d.error(
+                        "M0530",
+                        format!("{loc}.name"),
+                        "service names must not be empty or contain spaces",
+                    );
                 }
                 if let Err(e) = inst_fsx::relpath::validate(&s.executable) {
-                    d.error("M0531", format!("{loc}.executable"), format!("invalid path: {e}"));
+                    d.error(
+                        "M0531",
+                        format!("{loc}.executable"),
+                        format!("invalid path: {e}"),
+                    );
                 }
                 if s.scope == ServiceScope::User && targets.iter().any(|t| t.os == Os::Windows) {
                     let windows_applies = a
@@ -209,7 +295,11 @@ pub fn validate(project: &Project, facts: &dyn PrerequisiteFacts) -> Vec<Diagnos
             }
             ActionKind::Run(r) => {
                 if let Err(e) = inst_fsx::relpath::validate(&r.program) {
-                    d.error("M0540", format!("{loc}.program"), format!("invalid path: {e}"));
+                    d.error(
+                        "M0540",
+                        format!("{loc}.program"),
+                        format!("invalid path: {e}"),
+                    );
                 }
             }
             ActionKind::Registry(_) | ActionKind::Environment(_) => {}
@@ -221,15 +311,27 @@ pub fn validate(project: &Project, facts: &dyn PrerequisiteFacts) -> Vec<Diagnos
     for (i, pr) in p.prerequisites.iter().enumerate() {
         let loc = format!("prerequisites[{i}]");
         if !prereq_ids.insert(pr.id.as_str()) {
-            d.error("M0601", loc.clone(), format!("prerequisite {:?} listed twice", pr.id));
+            d.error(
+                "M0601",
+                loc.clone(),
+                format!("prerequisite {:?} listed twice", pr.id),
+            );
         }
         if pr.acquisition == Acquisition::Custom {
             if pr.custom_sources.is_empty() {
-                d.error("M0602", loc.clone(), "custom acquisition needs at least one source");
+                d.error(
+                    "M0602",
+                    loc.clone(),
+                    "custom acquisition needs at least one source",
+                );
             }
             for (j, s) in pr.custom_sources.iter().enumerate() {
                 if !s.url.starts_with("https://") {
-                    d.error("M0603", format!("{loc}.custom-sources[{j}]"), "custom sources must use https://");
+                    d.error(
+                        "M0603",
+                        format!("{loc}.custom-sources[{j}]"),
+                        "custom sources must use https://",
+                    );
                 }
                 if !(s.hash.starts_with("sha256:") || s.hash.starts_with("blake3:")) {
                     d.error(

@@ -15,6 +15,8 @@ pub mod hash;
 pub mod transport;
 
 pub use cache::{Cache, CacheEntry, ItemInfo};
-pub use download::{DownloadError, DownloadObserver, DownloadRequest, Downloader, Progress, RetryPolicy};
+pub use download::{
+    DownloadError, DownloadObserver, DownloadRequest, Downloader, Progress, RetryPolicy,
+};
 pub use hash::ContentHash;
 pub use transport::{Transport, TransportConfig};

@@ -129,10 +129,18 @@ impl Project {
 }
 
 fn default_excludes() -> Vec<String> {
-    ["*.pdb", "*.ilk", "*.tmp", "*.log", "Thumbs.db", ".DS_Store", ".git/"]
-        .into_iter()
-        .map(str::to_owned)
-        .collect()
+    [
+        "*.pdb",
+        "*.ilk",
+        "*.tmp",
+        "*.log",
+        "Thumbs.db",
+        ".DS_Store",
+        ".git/",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect()
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -454,7 +462,11 @@ pub struct InputField {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "type",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum InputKind {
     Text {
         #[serde(default)]
@@ -517,7 +529,11 @@ impl Default for UiSettings {
 
 /// Where a signing credential comes from. Never plaintext in the project.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "from", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "from",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum CredentialSource {
     /// Environment variable of the build process.
     Env { var: String },
@@ -529,10 +545,17 @@ pub enum CredentialSource {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "provider", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "provider",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum WindowsSigning {
     /// `signtool` with a certificate from the Windows certificate store.
-    CertificateStore { thumbprint: String, timestamp_url: String },
+    CertificateStore {
+        thumbprint: String,
+        timestamp_url: String,
+    },
     /// `signtool` with a PFX file; the password comes from a credential source.
     PfxFile {
         path: PathBuf,

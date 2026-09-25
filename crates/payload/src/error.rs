@@ -69,7 +69,11 @@ impl fmt::Display for PayloadError {
             PayloadError::Io(e) => write!(f, "I/O error: {e}"),
             PayloadError::Source(p, e) => write!(f, "cannot read {}: {e}", p.display()),
             PayloadError::SourceChanged(p) => {
-                write!(f, "{} changed while the installer was being built", p.display())
+                write!(
+                    f,
+                    "{} changed while the installer was being built",
+                    p.display()
+                )
             }
             PayloadError::NotFound => f.write_str("no payload found"),
             PayloadError::Index(e) => write!(f, "{e}"),
@@ -85,7 +89,10 @@ impl fmt::Display for PayloadError {
             },
             PayloadError::UnsafePath(p, e) => write!(f, "unsafe path {p:?}: {e}"),
             PayloadError::DuplicatePath(p) => {
-                write!(f, "duplicate path {p:?} (paths are compared case-insensitively)")
+                write!(
+                    f,
+                    "duplicate path {p:?} (paths are compared case-insensitively)"
+                )
             }
             PayloadError::Plan(what) => write!(f, "invalid payload plan: {what}"),
             PayloadError::Cancelled => f.write_str("cancelled"),

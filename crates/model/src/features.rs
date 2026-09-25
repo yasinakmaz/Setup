@@ -60,12 +60,23 @@ pub fn runtime_features(project: &Project, target: Target, gui: bool) -> Vec<Fea
             .and_then(|c| c.resolve_static(target.os, target.arch))
             .unwrap_or(true)
     };
-    for p in project.prerequisites.iter().filter(|p| applies(&p.condition)) {
+    for p in project
+        .prerequisites
+        .iter()
+        .filter(|p| applies(&p.condition))
+    {
         if p.acquisition != Acquisition::Embedded {
-            add("download", format!("prerequisite '{}' is downloaded when missing", p.id));
+            add(
+                "download",
+                format!("prerequisite '{}' is downloaded when missing", p.id),
+            );
         }
     }
-    for a in project.actions.iter().filter(|a| a.enabled && applies(&a.condition)) {
+    for a in project
+        .actions
+        .iter()
+        .filter(|a| a.enabled && applies(&a.condition))
+    {
         let why = || format!("action '{}'", a.id);
         match &a.kind {
             ActionKind::Database(d) => {

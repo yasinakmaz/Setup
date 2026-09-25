@@ -53,7 +53,11 @@ pub fn create_root(root: &Path) -> io::Result<Vec<PathBuf>> {
 
 /// Ensures `root/rel` exists as a real directory without following symlinks
 /// below `root`. Newly created directories are appended to `created`.
-pub fn ensure_dir_under(root: &Path, rel: RelPath<'_>, created: &mut Vec<PathBuf>) -> io::Result<()> {
+pub fn ensure_dir_under(
+    root: &Path,
+    rel: RelPath<'_>,
+    created: &mut Vec<PathBuf>,
+) -> io::Result<()> {
     let mut cur = root.to_path_buf();
     for component in rel.components() {
         cur.push(component);
@@ -128,8 +132,12 @@ mod tests {
         let outside = tempfile::tempdir().expect("tempdir");
         std::os::unix::fs::symlink(outside.path(), tmp.path().join("a")).expect("symlink");
         let mut created = Vec::new();
-        let err = ensure_dir_under(tmp.path(), RelPath::new("a/b").expect("valid"), &mut created)
-            .expect_err("must refuse");
+        let err = ensure_dir_under(
+            tmp.path(),
+            RelPath::new("a/b").expect("valid"),
+            &mut created,
+        )
+        .expect_err("must refuse");
         assert_eq!(err.kind(), io::ErrorKind::PermissionDenied);
         assert!(!outside.path().join("b").exists());
     }

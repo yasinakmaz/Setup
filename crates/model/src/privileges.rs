@@ -50,7 +50,9 @@ impl fmt::Display for PrivilegeReason {
                 f.write_str("installs for all users (Program Files / /opt)")
             }
             PrivilegeReason::MachineRegistry { key } => write!(f, "writes HKLM\\{key}"),
-            PrivilegeReason::SystemService { name } => write!(f, "installs system service '{name}'"),
+            PrivilegeReason::SystemService { name } => {
+                write!(f, "installs system service '{name}'")
+            }
             PrivilegeReason::MachineEnvironment { name } => {
                 write!(f, "changes system environment variable {name}")
             }
@@ -82,7 +84,11 @@ pub struct PrivilegeAnalysis {
 }
 
 /// Analyzes the privileges `project` needs on `target`.
-pub fn analyze(project: &Project, target: Target, facts: &dyn PrerequisiteFacts) -> PrivilegeAnalysis {
+pub fn analyze(
+    project: &Project,
+    target: Target,
+    facts: &dyn PrerequisiteFacts,
+) -> PrivilegeAnalysis {
     let os = target.os;
     let mut reasons = Vec::new();
     let applies = |cond: &Option<crate::condition::Condition>| {
@@ -94,16 +100,26 @@ pub fn analyze(project: &Project, target: Target, facts: &dyn PrerequisiteFacts)
     if project.install.location.base == InstallBase::PerMachine {
         reasons.push(PrivilegeReason::PerMachineLocation);
     }
-    for action in project.actions.iter().filter(|a| a.enabled && applies(&a.condition)) {
+    for action in project
+        .actions
+        .iter()
+        .filter(|a| a.enabled && applies(&a.condition))
+    {
         match &action.kind {
-            ActionKind::Registry(r) if os == Os::Windows && r.hive == RegistryHive::LocalMachine => {
+            ActionKind::Registry(r)
+                if os == Os::Windows && r.hive == RegistryHive::LocalMachine =>
+            {
                 reasons.push(PrivilegeReason::MachineRegistry { key: r.key.clone() });
             }
             ActionKind::Service(s) if os == Os::Windows || s.scope == ServiceScope::System => {
-                reasons.push(PrivilegeReason::SystemService { name: s.name.clone() });
+                reasons.push(PrivilegeReason::SystemService {
+                    name: s.name.clone(),
+                });
             }
             ActionKind::Environment(e) if e.scope == EnvScope::Machine => {
-                reasons.push(PrivilegeReason::MachineEnvironment { name: e.name.clone() });
+                reasons.push(PrivilegeReason::MachineEnvironment {
+                    name: e.name.clone(),
+                });
             }
             ActionKind::Script(s) if s.elevation == Elevation::Required => {
                 reasons.push(PrivilegeReason::ElevatedScript {
@@ -164,7 +180,12 @@ mod tests {
     use crate::ids::Version;
 
     fn project() -> Project {
-        Project::new("App", "Acme", Version::parse("1.0").expect("v"), "dist".into())
+        Project::new(
+            "App",
+            "Acme",
+            Version::parse("1.0").expect("v"),
+            "dist".into(),
+        )
     }
 
     fn service(scope: ServiceScope) -> Action {
@@ -214,8 +235,14 @@ mod tests {
         let mut a = service(ServiceScope::System);
         a.condition = Some(Condition::Os { os: Os::Linux });
         p.actions.push(a);
-        assert_eq!(analyze(&p, Target::WINDOWS_X64, &NoFacts).effective, Level::User);
-        assert_eq!(analyze(&p, Target::LINUX_X64, &NoFacts).effective, Level::Admin);
+        assert_eq!(
+            analyze(&p, Target::WINDOWS_X64, &NoFacts).effective,
+            Level::User
+        );
+        assert_eq!(
+            analyze(&p, Target::LINUX_X64, &NoFacts).effective,
+            Level::Admin
+        );
     }
 
     #[test]

@@ -11,7 +11,11 @@ use crate::platform::{Arch, Os};
 use crate::value::PathExpr;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(tag = "if", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "if",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum Condition {
     All {
         all: Vec<Condition>,
@@ -168,8 +172,12 @@ impl fmt::Display for Condition {
                 Arch::Arm64 => "ARM64",
             }),
             Condition::WindowsBuildAtLeast { build } => write!(f, "Windows build ≥ {build}"),
-            Condition::PrerequisiteMissing { prerequisite } => write!(f, "{prerequisite} not installed"),
-            Condition::PrerequisiteInstalled { prerequisite } => write!(f, "{prerequisite} installed"),
+            Condition::PrerequisiteMissing { prerequisite } => {
+                write!(f, "{prerequisite} not installed")
+            }
+            Condition::PrerequisiteInstalled { prerequisite } => {
+                write!(f, "{prerequisite} installed")
+            }
             Condition::FileExists { path } => write!(f, "file {:?}/{} exists", path.base, path.rel),
             Condition::EnvVarSet { name } => write!(f, "${name} is set"),
             Condition::EnvVarEquals { name, value } => write!(f, "${name} = {value:?}"),

@@ -279,8 +279,7 @@ impl<'a> Reader<'a> {
     /// bytes; rejects counts that cannot possibly fit in the input. This lets
     /// callers pre-allocate `Vec::with_capacity(count)` safely.
     pub fn count(&mut self, min_item_size: usize) -> Result<usize> {
-        let count =
-            usize::try_from(self.varint()?).map_err(|_| WireError::LengthOutOfBounds)?;
+        let count = usize::try_from(self.varint()?).map_err(|_| WireError::LengthOutOfBounds)?;
         let needed = count
             .checked_mul(min_item_size.max(1))
             .ok_or(WireError::LengthOutOfBounds)?;
@@ -360,13 +359,22 @@ mod tests {
 
         let mut buf = Vec::new();
         Writer::new(&mut buf).varint(1_000_000);
-        assert_eq!(Reader::new(&buf).count(8), Err(WireError::LengthOutOfBounds));
+        assert_eq!(
+            Reader::new(&buf).count(8),
+            Err(WireError::LengthOutOfBounds)
+        );
 
         // 11-byte varint.
         let buf = [0xffu8; 11];
         assert_eq!(Reader::new(&buf).varint(), Err(WireError::VarintOverflow));
 
-        assert_eq!(Reader::new(&[2]).bool(), Err(WireError::InvalidTag { what: "bool", tag: 2 }));
+        assert_eq!(
+            Reader::new(&[2]).bool(),
+            Err(WireError::InvalidTag {
+                what: "bool",
+                tag: 2
+            })
+        );
         assert_eq!(Reader::new(&[1, 0xff]).str(), Err(WireError::InvalidUtf8));
         assert_eq!(Reader::new(&[1, 2]).u32(), Err(WireError::UnexpectedEnd));
     }
@@ -376,7 +384,11 @@ mod tests {
         // Cheap deterministic fuzz: every prefix of an encoded stream, plus
         // byte-flipped variants, must decode or fail cleanly.
         let mut buf = Vec::new();
-        Writer::new(&mut buf).str("hello").varint(12345).u64(1).bytes(&[1, 2, 3]);
+        Writer::new(&mut buf)
+            .str("hello")
+            .varint(12345)
+            .u64(1)
+            .bytes(&[1, 2, 3]);
         for cut in 0..=buf.len() {
             let mut r = Reader::new(&buf[..cut]);
             let _ = r.str().and_then(|_| r.varint()).and_then(|_| r.u64());

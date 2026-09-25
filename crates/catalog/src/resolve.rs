@@ -11,7 +11,9 @@ use inst_fetch::ContentHash;
 use inst_model::ids::{Version, VersionReq};
 use inst_model::platform::{Arch, Os};
 
-use crate::schema::{CatalogItem, Detection, FileKind, InstallSpec, IntegrityStrategy, Package, SignatureSpec};
+use crate::schema::{
+    CatalogItem, Detection, FileKind, InstallSpec, IntegrityStrategy, Package, SignatureSpec,
+};
 use crate::{Redundancy, redundancy};
 
 /// Network access needed by resolution. Implemented by the build system on
@@ -23,7 +25,12 @@ pub trait Fetcher {
     /// Downloads the resource and hashes it with the algorithm of `like`.
     /// Implementations should also verify the Authenticode publisher when
     /// `publisher` is set and the host can check it.
-    fn download_hash(&self, url: &str, like: &ContentHash, publisher: Option<&str>) -> Result<(ContentHash, u64), String>;
+    fn download_hash(
+        &self,
+        url: &str,
+        like: &ContentHash,
+        publisher: Option<&str>,
+    ) -> Result<(ContentHash, u64), String>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -70,7 +77,9 @@ impl fmt::Display for ResolveError {
             ResolveError::NeedsExactVersion { id, example } => {
                 write!(f, "{id}: specify an exact version, e.g. ={example}")
             }
-            ResolveError::NoMatchingVersion { id, req } => write!(f, "{id}: no release matches {req}"),
+            ResolveError::NoMatchingVersion { id, req } => {
+                write!(f, "{id}: no release matches {req}")
+            }
             ResolveError::Metadata(e) => write!(f, "invalid vendor metadata: {e}"),
             ResolveError::Network(e) => write!(f, "network error: {e}"),
         }
@@ -118,11 +127,13 @@ pub fn resolve(
     req: &VersionReq,
     fetcher: &dyn Fetcher,
 ) -> Result<ResolvedPackage, ResolveError> {
-    let package = item.package(os, arch).ok_or_else(|| ResolveError::NoPackage {
-        id: item.id.clone(),
-        os,
-        arch,
-    })?;
+    let package = item
+        .package(os, arch)
+        .ok_or_else(|| ResolveError::NoPackage {
+            id: item.id.clone(),
+            os,
+            arch,
+        })?;
     let channel = pick_channel(item, req).to_owned();
     let (version, urls, hash, size, integrity_source) = match &package.integrity {
         IntegrityStrategy::Unverifiable => return Err(ResolveError::Unverifiable(item.id.clone())),
@@ -144,8 +155,16 @@ pub fn resolve(
             if !urls.contains(&url) {
                 urls.push(url);
             }
-            let size = fetcher.content_length(&urls[0]).map_err(ResolveError::Network)?;
-            (version, urls, hash, size, "vendor release metadata (SHA-512)")
+            let size = fetcher
+                .content_length(&urls[0])
+                .map_err(ResolveError::Network)?;
+            (
+                version,
+                urls,
+                hash,
+                size,
+                "vendor release metadata (SHA-512)",
+            )
         }
         IntegrityStrategy::ChecksumFile { url, file_name } => {
             let version = match exact_version(req) {
@@ -176,7 +195,9 @@ pub fn resolve(
                 ResolveError::Metadata(format!("{wanted} not listed in checksum file"))
             })?;
             let urls = template_urls(package, &version, &channel);
-            let size = fetcher.content_length(&urls[0]).map_err(ResolveError::Network)?;
+            let size = fetcher
+                .content_length(&urls[0])
+                .map_err(ResolveError::Network)?;
             (version, urls, hash, size, "vendor checksum file (SHA-256)")
         }
         IntegrityStrategy::PinAtBuild => {
@@ -192,7 +213,10 @@ pub fn resolve(
                 None => format!("latest ({channel})"),
             };
             let urls = template_urls(package, &version, &channel);
-            let publisher = package.signature.as_ref().map(|s| s.authenticode_publisher.as_str());
+            let publisher = package
+                .signature
+                .as_ref()
+                .map(|s| s.authenticode_publisher.as_str());
             let (hash, size) = fetcher
                 .download_hash(&urls[0], &ContentHash::Sha256([0; 32]), publisher)
                 .map_err(ResolveError::Network)?;
@@ -248,13 +272,21 @@ pub fn dotnet_pick(
         .ok_or("missing releases array")?;
     let mut best: Option<(Version, String, ContentHash)> = None;
     for rel in releases {
-        let Some(comp) = rel.get(component) else { continue };
-        let Some(version) = comp.get("version").and_then(|v| v.as_str()) else { continue };
-        let Ok(parsed) = Version::parse(version) else { continue };
+        let Some(comp) = rel.get(component) else {
+            continue;
+        };
+        let Some(version) = comp.get("version").and_then(|v| v.as_str()) else {
+            continue;
+        };
+        let Ok(parsed) = Version::parse(version) else {
+            continue;
+        };
         if !req.matches(&parsed) {
             continue;
         }
-        let Some(files) = comp.get("files").and_then(|f| f.as_array()) else { continue };
+        let Some(files) = comp.get("files").and_then(|f| f.as_array()) else {
+            continue;
+        };
         for f in files {
             if f.get("name").and_then(|n| n.as_str()) != Some(file_name) {
                 continue;
@@ -265,7 +297,9 @@ pub fn dotnet_pick(
             ) else {
                 continue;
             };
-            let Ok(hash) = ContentHash::parse(&format!("sha512:{hash}")) else { continue };
+            let Ok(hash) = ContentHash::parse(&format!("sha512:{hash}")) else {
+                continue;
+            };
             if !url.starts_with("https://") {
                 continue;
             }
@@ -283,9 +317,14 @@ pub fn node_pick(json: &str, channel: &str, req: &VersionReq) -> Result<Option<S
     let list = doc.as_array().ok_or("expected an array")?;
     let mut best: Option<Version> = None;
     for entry in list {
-        let Some(v) = entry.get("version").and_then(|v| v.as_str()) else { continue };
-        let Ok(parsed) = Version::parse(v) else { continue };
-        if parsed.major().to_string() != channel || !req.matches(&parsed) || parsed.pre().is_some() {
+        let Some(v) = entry.get("version").and_then(|v| v.as_str()) else {
+            continue;
+        };
+        let Ok(parsed) = Version::parse(v) else {
+            continue;
+        };
+        if parsed.major().to_string() != channel || !req.matches(&parsed) || parsed.pre().is_some()
+        {
             continue;
         }
         if best.as_ref().is_none_or(|b| parsed > *b) {
@@ -325,12 +364,23 @@ mod tests {
 
     impl Fetcher for Fixture {
         fn get_text(&self, url: &str) -> Result<String, String> {
-            self.texts.get(url).cloned().ok_or_else(|| format!("404 {url}"))
+            self.texts
+                .get(url)
+                .cloned()
+                .ok_or_else(|| format!("404 {url}"))
         }
         fn content_length(&self, url: &str) -> Result<u64, String> {
-            self.sizes.get(url).copied().ok_or_else(|| format!("404 {url}"))
+            self.sizes
+                .get(url)
+                .copied()
+                .ok_or_else(|| format!("404 {url}"))
         }
-        fn download_hash(&self, url: &str, _like: &ContentHash, _p: Option<&str>) -> Result<(ContentHash, u64), String> {
+        fn download_hash(
+            &self,
+            url: &str,
+            _like: &ContentHash,
+            _p: Option<&str>,
+        ) -> Result<(ContentHash, u64), String> {
             self.downloads.borrow_mut().push(url.to_owned());
             Ok((ContentHash::Sha256([7; 32]), 1234))
         }
@@ -350,7 +400,8 @@ mod tests {
         let primary = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.31/windowsdesktop-runtime-8.0.31-win-x64.exe";
         let fx = Fixture {
             texts: [(
-                "https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json".to_owned(),
+                "https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json"
+                    .to_owned(),
                 DOTNET_JSON.to_owned(),
             )]
             .into(),
@@ -370,10 +421,18 @@ mod tests {
         assert_eq!(r.size, 58_000_000);
         assert!(r.requires_admin);
         assert_eq!(r.file_name, "windowsdesktop-runtime-8.0.31-win-x64.exe");
-        assert!(fx.downloads.borrow().is_empty(), "metadata resolution must not download the file");
+        assert!(
+            fx.downloads.borrow().is_empty(),
+            "metadata resolution must not download the file"
+        );
 
         let old = VersionReq::parse("=8.0.30").expect("req");
-        assert_eq!(resolve(item, Os::Windows, Arch::X64, &old, &fx).expect("resolve").version, "8.0.30");
+        assert_eq!(
+            resolve(item, Os::Windows, Arch::X64, &old, &fx)
+                .expect("resolve")
+                .version,
+            "8.0.30"
+        );
     }
 
     #[test]
@@ -395,7 +454,14 @@ mod tests {
             sizes: [("https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi".to_owned(), 30_000_000)].into(),
             downloads: RefCell::default(),
         };
-        let r = resolve(item, Os::Windows, Arch::X64, &VersionReq::parse("^22").expect("req"), &fx).expect("resolve");
+        let r = resolve(
+            item,
+            Os::Windows,
+            Arch::X64,
+            &VersionReq::parse("^22").expect("req"),
+            &fx,
+        )
+        .expect("resolve");
         assert_eq!(r.version, "22.11.0");
         assert_eq!(r.hash.to_string(), format!("sha256:{}", "1".repeat(64)));
         assert_eq!(r.redundancy, Redundancy::Degraded { routes: 1 });
@@ -412,7 +478,10 @@ mod tests {
         let vc = c.get("vc-redist").expect("vc");
         let r = resolve(vc, Os::Windows, Arch::X64, &VersionReq::ANY, &fx).expect("resolve");
         assert_eq!(r.size, 1234);
-        assert_eq!(fx.downloads.borrow().as_slice(), ["https://aka.ms/vs/17/release/vc_redist.x64.exe"]);
+        assert_eq!(
+            fx.downloads.borrow().as_slice(),
+            ["https://aka.ms/vs/17/release/vc_redist.x64.exe"]
+        );
 
         let git = c.get("git").expect("git");
         assert!(matches!(

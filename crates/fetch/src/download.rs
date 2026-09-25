@@ -65,9 +65,14 @@ pub enum SourceFailure {
     /// Retries exhausted on transient errors.
     Transient(String),
     /// Server reports a different size than expected.
-    SizeMismatch { expected: u64, reported: u64 },
+    SizeMismatch {
+        expected: u64,
+        reported: u64,
+    },
     /// Content did not match the expected hash.
-    Integrity { actual: ContentHash },
+    Integrity {
+        actual: ContentHash,
+    },
     Forbidden(String),
 }
 
@@ -77,7 +82,10 @@ impl std::fmt::Display for SourceFailure {
             SourceFailure::Status(s) => write!(f, "HTTP {s}"),
             SourceFailure::Transient(e) => write!(f, "{e}"),
             SourceFailure::SizeMismatch { expected, reported } => {
-                write!(f, "size mismatch: expected {expected} bytes, server reports {reported}")
+                write!(
+                    f,
+                    "size mismatch: expected {expected} bytes, server reports {reported}"
+                )
             }
             SourceFailure::Integrity { actual } => write!(f, "checksum mismatch (got {actual})"),
             SourceFailure::Forbidden(e) => write!(f, "{e}"),
@@ -171,7 +179,10 @@ impl PartialMeta {
 /// Paths of the partial download for a request.
 pub fn partial_paths(dir: &Path, hash: &ContentHash) -> (PathBuf, PathBuf) {
     let key = hash.key();
-    (dir.join(format!("{key}.part")), dir.join(format!("{key}.meta")))
+    (
+        dir.join(format!("{key}.part")),
+        dir.join(format!("{key}.meta")),
+    )
 }
 
 /// Cancellation and progress hooks.
@@ -339,10 +350,16 @@ impl<'t> Downloader<'t> {
             return self.finish(req, part, hash_state);
         }
 
-        let if_range = if meta.url == url { meta.validator.as_deref() } else { None };
+        let if_range = if meta.url == url {
+            meta.validator.as_deref()
+        } else {
+            None
+        };
         let resp = match self.transport.get(url, offset, if_range) {
             Ok(r) => r,
-            Err(TransportError::Forbidden(e)) => return Ok(Attempt::Abandon(SourceFailure::Forbidden(e))),
+            Err(TransportError::Forbidden(e)) => {
+                return Ok(Attempt::Abandon(SourceFailure::Forbidden(e)));
+            }
             Err(e) => return Ok(Attempt::Retry(e.to_string())),
         };
         match resp.status {
@@ -367,7 +384,9 @@ impl<'t> Downloader<'t> {
                 *hash_state = None;
                 return Ok(Attempt::Retry("range not satisfiable".into()));
             }
-            408 | 425 | 429 | 500..=599 => return Ok(Attempt::Retry(format!("HTTP {}", resp.status))),
+            408 | 425 | 429 | 500..=599 => {
+                return Ok(Attempt::Retry(format!("HTTP {}", resp.status)));
+            }
             other => return Ok(Attempt::Abandon(SourceFailure::Status(other))),
         }
         if let Some(total) = resp.total_len
@@ -428,7 +447,10 @@ impl<'t> Downloader<'t> {
             };
             let allowed = (size - offset - received).min(n as u64) as usize;
             if allowed < n {
-                break Err(io::Error::new(io::ErrorKind::InvalidData, "server sent more data than expected"));
+                break Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "server sent more data than expected",
+                ));
             }
             part.write_all(&self.buffer[..n])?;
             hasher.update(&self.buffer[..n]);
@@ -458,13 +480,11 @@ impl<'t> Downloader<'t> {
                     reported: now + 1,
                 }))
             }
-            Err(e) => {
-                Ok(if received > 0 {
-                    Attempt::Progressed
-                } else {
-                    Attempt::Retry(e.to_string())
-                })
-            }
+            Err(e) => Ok(if received > 0 {
+                Attempt::Progressed
+            } else {
+                Attempt::Retry(e.to_string())
+            }),
         }
     }
 
@@ -505,7 +525,10 @@ impl<'t> Downloader<'t> {
     }
 }
 
-fn sleep_cancellable(total: Duration, observer: &mut dyn DownloadObserver) -> Result<(), DownloadError> {
+fn sleep_cancellable(
+    total: Duration,
+    observer: &mut dyn DownloadObserver,
+) -> Result<(), DownloadError> {
     let step = Duration::from_millis(50);
     let mut left = total;
     while !left.is_zero() {

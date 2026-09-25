@@ -258,7 +258,11 @@ impl<W: Write + Send> Sink for WriterSink<W> {
     }
 
     fn flush(&self) {
-        let _ = self.writer.lock().unwrap_or_else(|e| e.into_inner()).flush();
+        let _ = self
+            .writer
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .flush();
     }
 }
 
@@ -412,7 +416,13 @@ impl Logger {
 fn render(out: &mut String, format: Format, ts: Timestamp, r: &Record<'_>) -> fmt::Result {
     match format {
         Format::Text => {
-            write!(out, "{ts} {:<5} {}: {}", r.level.as_str(), r.target, r.message)?;
+            write!(
+                out,
+                "{ts} {:<5} {}: {}",
+                r.level.as_str(),
+                r.target,
+                r.message
+            )?;
             for (key, value) in r.fields {
                 write!(out, " {key}=")?;
                 let start = out.len();
@@ -425,7 +435,11 @@ fn render(out: &mut String, format: Format, ts: Timestamp, r: &Record<'_>) -> fm
             Ok(())
         }
         Format::JsonLines => {
-            write!(out, "{{\"ts\":\"{ts}\",\"level\":\"{}\",\"target\":", r.level.as_str())?;
+            write!(
+                out,
+                "{{\"ts\":\"{ts}\",\"level\":\"{}\",\"target\":",
+                r.level.as_str()
+            )?;
             json_string(out, format_args!("{}", r.target))?;
             out.push_str(",\"msg\":");
             json_string(out, r.message)?;
@@ -555,12 +569,20 @@ macro_rules! __log_impl {
 }
 
 /// Opens (appends to) a log file sink.
-pub fn file_sink(path: &std::path::Path, max_level: Level, format: Format) -> io::Result<Arc<dyn Sink>> {
+pub fn file_sink(
+    path: &std::path::Path,
+    max_level: Level,
+    format: Format,
+) -> io::Result<Arc<dyn Sink>> {
     let file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(path)?;
-    Ok(Arc::new(WriterSink::new(io::BufWriter::new(file), max_level, format)))
+    Ok(Arc::new(WriterSink::new(
+        io::BufWriter::new(file),
+        max_level,
+        format,
+    )))
 }
 
 #[cfg(test)]

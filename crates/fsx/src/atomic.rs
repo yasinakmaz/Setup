@@ -185,6 +185,10 @@ mod tests {
         let a = sibling_temp_path(t, "partial").expect("path");
         let b = sibling_temp_path(t, "partial").expect("path");
         assert_ne!(a, b);
-        assert!(a.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.starts_with(".file.bin.")));
+        assert!(
+            a.file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.starts_with(".file.bin."))
+        );
     }
 }

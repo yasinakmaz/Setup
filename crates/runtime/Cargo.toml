@@ -10,3 +10,63 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = ["zstd", "xz"]
+# Payload decoders (the builder enables only those the payload uses).
+zstd = ["inst-payload/zstd"]
+xz = ["inst-payload/xz"]
+# Languages beyond English.
+lang-tr = ["inst-i18n/lang-tr"]
+lang-ar = ["inst-i18n/lang-ar"]
+lang-es = ["inst-i18n/lang-es"]
+lang-fr = ["inst-i18n/lang-fr"]
+lang-de = ["inst-i18n/lang-de"]
+lang-ru = ["inst-i18n/lang-ru"]
+# Prerequisite downloads over HTTPS.
+download = ["dep:inst-fetch"]
+# Script actions (PowerShell / sh).
+scripts = []
+# Service installation.
+services = []
+# Windows registry actions.
+registry = []
+# Environment variable actions.
+environment = []
+
+[dependencies]
+inst-brand.workspace = true
+inst-fsx.workspace = true
+inst-i18n = { workspace = true, features = ["detect"] }
+inst-log.workspace = true
+inst-payload = { workspace = true, features = ["read"] }
+inst-wire.workspace = true
+inst-fetch = { workspace = true, optional = true, features = ["ureq"] }
+blake3.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Cryptography",
+    "Win32_Security_WinTrust",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Com",
+    "Win32_System_Registry",
+    "Win32_System_Services",
+    "Win32_System_Threading",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+windows = { version = "0.62", default-features = false, features = [
+    "std",
+    "Win32_System_Com",
+    "Win32_UI_Shell",
+    "Win32_Storage_FileSystem",
+] }
+
+[dev-dependencies]
+tempfile.workspace = true
+inst-payload = { workspace = true, features = ["read", "write", "zstd"] }

@@ -133,7 +133,10 @@ impl StreamHasher {
 }
 
 /// Hashes a file with the algorithm of `like`.
-pub fn hash_file(path: &std::path::Path, like: &ContentHash) -> std::io::Result<(ContentHash, u64)> {
+pub fn hash_file(
+    path: &std::path::Path,
+    like: &ContentHash,
+) -> std::io::Result<(ContentHash, u64)> {
     use std::io::Read;
     let mut file = std::fs::File::open(path)?;
     let mut hasher = like.hasher();

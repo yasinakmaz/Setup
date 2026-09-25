@@ -108,7 +108,12 @@ pub enum FileAction {
 /// Hooks that let the runtime journal every change for rollback.
 pub trait ExtractObserver {
     /// Called before a file is decoded. `target` is where it will be written.
-    fn begin_file(&mut self, _path: RelPath<'_>, _entry: &FileEntry, _target: &Path) -> io::Result<FileAction> {
+    fn begin_file(
+        &mut self,
+        _path: RelPath<'_>,
+        _entry: &FileEntry,
+        _target: &Path,
+    ) -> io::Result<FileAction> {
         Ok(FileAction::Extract)
     }
     /// Directories that extraction created, outermost first.
@@ -116,11 +121,21 @@ pub trait ExtractObserver {
     /// Called after the new content was verified and right before it
     /// replaces `target`. `exists` tells whether `target` exists; the runtime
     /// uses this to move the old file to its rollback backup.
-    fn before_commit(&mut self, _path: RelPath<'_>, _target: &Path, _exists: bool) -> io::Result<()> {
+    fn before_commit(
+        &mut self,
+        _path: RelPath<'_>,
+        _target: &Path,
+        _exists: bool,
+    ) -> io::Result<()> {
         Ok(())
     }
     /// Called after the file was renamed into place.
-    fn committed(&mut self, _path: RelPath<'_>, _entry: &FileEntry, _target: &Path) -> io::Result<()> {
+    fn committed(
+        &mut self,
+        _path: RelPath<'_>,
+        _entry: &FileEntry,
+        _target: &Path,
+    ) -> io::Result<()> {
         Ok(())
     }
     /// Uncompressed bytes processed since the last call.
@@ -230,15 +245,25 @@ pub fn extract_block<R: Read>(
             let target = rel.to_path_under(root);
             match observer.begin_file(rel, entry, &target)? {
                 FileAction::Skip => {
-                    let copied =
-                        io::copy(&mut (&mut decoder).take(entry.size), &mut io::sink())?;
+                    let copied = io::copy(&mut (&mut decoder).take(entry.size), &mut io::sink())?;
                     if copied != entry.size {
-                        return Err(PayloadError::Truncated(IntegrityTarget::File(path_str.to_owned())));
+                        return Err(PayloadError::Truncated(IntegrityTarget::File(
+                            path_str.to_owned(),
+                        )));
                     }
                     observer.progress(entry.size);
                 }
                 FileAction::Extract => {
-                    extract_file(&mut decoder, rel, entry, &target, root, observer, bufs, opts)?;
+                    extract_file(
+                        &mut decoder,
+                        rel,
+                        entry,
+                        &target,
+                        root,
+                        observer,
+                        bufs,
+                        opts,
+                    )?;
                 }
             }
         }
@@ -310,7 +335,9 @@ fn extract_file(
         let want = bufs.copy.len().min(remaining as usize);
         let n = match decoder.read(&mut bufs.copy[..want]) {
             Ok(0) => {
-                return Err(PayloadError::Truncated(IntegrityTarget::File(rel.as_str().to_owned())));
+                return Err(PayloadError::Truncated(IntegrityTarget::File(
+                    rel.as_str().to_owned(),
+                )));
             }
             Ok(n) => n,
             Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
@@ -322,7 +349,9 @@ fn extract_file(
         observer.progress(n as u64);
     }
     if hasher.finalize().as_bytes() != &entry.hash {
-        return Err(PayloadError::Integrity(IntegrityTarget::File(rel.as_str().to_owned())));
+        return Err(PayloadError::Integrity(IntegrityTarget::File(
+            rel.as_str().to_owned(),
+        )));
     }
     set_mode(out.temp_path(), entry.flags.executable())?;
     observer.before_commit(rel, target, exists)?;

@@ -189,11 +189,19 @@ impl Cache {
     }
 
     /// Inserts an existing verified file (e.g. an embedded package).
-    pub fn insert_file(&self, source: &Path, hash: &ContentHash, info: &ItemInfo) -> io::Result<PathBuf> {
+    pub fn insert_file(
+        &self,
+        source: &Path,
+        hash: &ContentHash,
+        info: &ItemInfo,
+    ) -> io::Result<PathBuf> {
         let _lock = self.lock_exclusive(hash)?;
         let (actual, size) = hash_file(source, hash)?;
         if actual != *hash {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "hash mismatch on insert"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "hash mismatch on insert",
+            ));
         }
         let dest = self.object_path(hash);
         if let Some(parent) = dest.parent() {
@@ -270,12 +278,19 @@ impl Cache {
         for algo_dir in read_dir_sorted(&objects)? {
             for shard in read_dir_sorted(&algo_dir)? {
                 for file in read_dir_sorted(&shard)? {
-                    let Some(name) = file.file_name().and_then(|n| n.to_str()) else { continue };
+                    let Some(name) = file.file_name().and_then(|n| n.to_str()) else {
+                        continue;
+                    };
                     if name.contains('.') {
                         continue; // .info files and temporaries
                     }
-                    let algo = algo_dir.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-                    let Ok(hash) = ContentHash::parse(&format!("{algo}:{name}")) else { continue };
+                    let algo = algo_dir
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or_default();
+                    let Ok(hash) = ContentHash::parse(&format!("{algo}:{name}")) else {
+                        continue;
+                    };
                     let size = fs::metadata(&file).map(|m| m.len()).unwrap_or(0);
                     let (info, _, created, last_used) =
                         Cache::read_info(&self.info_path(&hash)).unwrap_or_default();
@@ -328,10 +343,16 @@ impl Cache {
         let freed = self.clear_where(|_| true)?;
         let mut partial = 0u64;
         for p in read_dir_sorted(&self.partial_dir())? {
-            let Some(name) = p.file_name().and_then(|n| n.to_str()) else { continue };
+            let Some(name) = p.file_name().and_then(|n| n.to_str()) else {
+                continue;
+            };
             let key = name.trim_end_matches(".part").trim_end_matches(".meta");
-            let Some((algo, hex)) = key.split_once('-') else { continue };
-            let Ok(hash) = ContentHash::parse(&format!("{algo}:{hex}")) else { continue };
+            let Some((algo, hex)) = key.split_once('-') else {
+                continue;
+            };
+            let Ok(hash) = ContentHash::parse(&format!("{algo}:{hex}")) else {
+                continue;
+            };
             if let Some(_lock) = self.try_lock_exclusive(&hash)? {
                 partial += fs::metadata(&p).map(|m| m.len()).unwrap_or(0);
                 let _ = fs::remove_file(&p);
@@ -357,7 +378,9 @@ impl Cache {
 
 fn read_dir_sorted(dir: &Path) -> io::Result<Vec<PathBuf>> {
     let mut out = match fs::read_dir(dir) {
-        Ok(rd) => rd.filter_map(|e| e.ok().map(|e| e.path())).collect::<Vec<_>>(),
+        Ok(rd) => rd
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .collect::<Vec<_>>(),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Vec::new(),
         Err(e) => return Err(e),
     };

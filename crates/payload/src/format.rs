@@ -259,8 +259,10 @@ impl Index {
                 compressed_len: r.varint()?,
                 uncompressed_len: r.varint()?,
                 hash: r.hash()?,
-                first_file: u32::try_from(r.varint()?).map_err(|_| IndexError::Invalid("file range"))?,
-                file_count: u32::try_from(r.varint()?).map_err(|_| IndexError::Invalid("file range"))?,
+                first_file: u32::try_from(r.varint()?)
+                    .map_err(|_| IndexError::Invalid("file range"))?,
+                file_count: u32::try_from(r.varint()?)
+                    .map_err(|_| IndexError::Invalid("file range"))?,
             });
         }
         let dir_count = r.count(2)?;

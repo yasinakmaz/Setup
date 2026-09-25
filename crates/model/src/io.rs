@@ -103,9 +103,16 @@ mod tests {
 
     #[test]
     fn roundtrip() {
-        let mut p = Project::new("Acme Orders", "Acme", Version::parse("1.4.0").expect("v"), "../dist".into());
+        let mut p = Project::new(
+            "Acme Orders",
+            "Acme",
+            Version::parse("1.4.0").expect("v"),
+            "../dist".into(),
+        );
         p.application.main_executable = Some("AcmeOrders.exe".into());
-        p.product.description.set(inst_i18n::Language::Tr, "Sipariş yönetimi".into());
+        p.product
+            .description
+            .set(inst_i18n::Language::Tr, "Sipariş yönetimi".into());
         let text = to_toml(&p).expect("ser");
         assert_eq!(from_toml(&text).expect("de"), p, "{text}");
     }
@@ -136,6 +143,9 @@ source = "dist"
             from_toml("schema = 999"),
             Err(ProjectFileError::TooNew(999))
         ));
-        assert!(matches!(from_toml("x = 1"), Err(ProjectFileError::MissingSchema)));
+        assert!(matches!(
+            from_toml("x = 1"),
+            Err(ProjectFileError::MissingSchema)
+        ));
     }
 }

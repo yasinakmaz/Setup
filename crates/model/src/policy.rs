@@ -50,28 +50,116 @@ pub struct DocumentedDefault {
 
 /// Every default, in display order.
 pub const DEFAULTS: &[DocumentedDefault] = &[
-    DocumentedDefault { key: "integrity-verification", value: on::INTEGRITY_VERIFICATION, rationale: "A corrupted or tampered setup must never install anything." },
-    DocumentedDefault { key: "rollback", value: on::ROLLBACK, rationale: "A failed installation must leave the system as it was." },
-    DocumentedDefault { key: "logging", value: on::LOGGING, rationale: "Failures must be diagnosable; secrets are always redacted." },
-    DocumentedDefault { key: "silent-install", value: on::SILENT_INSTALL, rationale: "Administrators deploy software unattended." },
-    DocumentedDefault { key: "silent-uninstall", value: on::SILENT_UNINSTALL, rationale: "Unattended removal is as important as unattended installation." },
-    DocumentedDefault { key: "uninstaller", value: on::UNINSTALLER, rationale: "Every installed product must be removable." },
-    DocumentedDefault { key: "detect-existing-version", value: on::DETECT_EXISTING_VERSION, rationale: "Upgrades and repairs must not create duplicate installations." },
-    DocumentedDefault { key: "architecture-check", value: on::ARCHITECTURE_CHECK, rationale: "Installing binaries for the wrong CPU produces a broken application." },
-    DocumentedDefault { key: "disk-space-check", value: on::DISK_SPACE_CHECK, rationale: "Fail before copying anything instead of half-way through." },
-    DocumentedDefault { key: "prerequisite-detection", value: on::PREREQUISITE_DETECTION, rationale: "Never download or reinstall what is already present." },
-    DocumentedDefault { key: "atomic-file-operations", value: on::ATOMIC_FILE_OPERATIONS, rationale: "Files are either the old or the new version, never half-written." },
-    DocumentedDefault { key: "failure-recovery", value: on::FAILURE_RECOVERY, rationale: "Interrupted installations can be repaired or cleanly retried." },
-    DocumentedDefault { key: "start-menu-entry", value: on::START_MENU_ENTRY, rationale: "Users expect to find installed applications in the system menu." },
-    DocumentedDefault { key: "desktop-shortcut", value: off::DESKTOP_SHORTCUT, rationale: "The desktop belongs to the user; add icons only when asked." },
-    DocumentedDefault { key: "launch-at-startup", value: off::LAUNCH_AT_STARTUP, rationale: "Slows down every login; must be an explicit product decision." },
-    DocumentedDefault { key: "path-modification", value: off::PATH_MODIFICATION, rationale: "Changes how every other program resolves commands." },
-    DocumentedDefault { key: "file-associations", value: off::FILE_ASSOCIATIONS, rationale: "Takes over file types from applications the user already chose." },
-    DocumentedDefault { key: "protocol-associations", value: off::PROTOCOL_ASSOCIATIONS, rationale: "Takes over URL schemes system-wide." },
-    DocumentedDefault { key: "firewall-rules", value: off::FIREWALL_RULES, rationale: "Opens the machine to the network; needs administrator consent." },
-    DocumentedDefault { key: "service-installation", value: off::SERVICE_INSTALLATION, rationale: "Background services run without the user; needs elevation." },
-    DocumentedDefault { key: "telemetry", value: off::TELEMETRY, rationale: "Privacy: no data leaves the machine unless the product opts in." },
-    DocumentedDefault { key: "automatic-reboot", value: off::AUTOMATIC_REBOOT, rationale: "Rebooting without consent loses the user's work." },
+    DocumentedDefault {
+        key: "integrity-verification",
+        value: on::INTEGRITY_VERIFICATION,
+        rationale: "A corrupted or tampered setup must never install anything.",
+    },
+    DocumentedDefault {
+        key: "rollback",
+        value: on::ROLLBACK,
+        rationale: "A failed installation must leave the system as it was.",
+    },
+    DocumentedDefault {
+        key: "logging",
+        value: on::LOGGING,
+        rationale: "Failures must be diagnosable; secrets are always redacted.",
+    },
+    DocumentedDefault {
+        key: "silent-install",
+        value: on::SILENT_INSTALL,
+        rationale: "Administrators deploy software unattended.",
+    },
+    DocumentedDefault {
+        key: "silent-uninstall",
+        value: on::SILENT_UNINSTALL,
+        rationale: "Unattended removal is as important as unattended installation.",
+    },
+    DocumentedDefault {
+        key: "uninstaller",
+        value: on::UNINSTALLER,
+        rationale: "Every installed product must be removable.",
+    },
+    DocumentedDefault {
+        key: "detect-existing-version",
+        value: on::DETECT_EXISTING_VERSION,
+        rationale: "Upgrades and repairs must not create duplicate installations.",
+    },
+    DocumentedDefault {
+        key: "architecture-check",
+        value: on::ARCHITECTURE_CHECK,
+        rationale: "Installing binaries for the wrong CPU produces a broken application.",
+    },
+    DocumentedDefault {
+        key: "disk-space-check",
+        value: on::DISK_SPACE_CHECK,
+        rationale: "Fail before copying anything instead of half-way through.",
+    },
+    DocumentedDefault {
+        key: "prerequisite-detection",
+        value: on::PREREQUISITE_DETECTION,
+        rationale: "Never download or reinstall what is already present.",
+    },
+    DocumentedDefault {
+        key: "atomic-file-operations",
+        value: on::ATOMIC_FILE_OPERATIONS,
+        rationale: "Files are either the old or the new version, never half-written.",
+    },
+    DocumentedDefault {
+        key: "failure-recovery",
+        value: on::FAILURE_RECOVERY,
+        rationale: "Interrupted installations can be repaired or cleanly retried.",
+    },
+    DocumentedDefault {
+        key: "start-menu-entry",
+        value: on::START_MENU_ENTRY,
+        rationale: "Users expect to find installed applications in the system menu.",
+    },
+    DocumentedDefault {
+        key: "desktop-shortcut",
+        value: off::DESKTOP_SHORTCUT,
+        rationale: "The desktop belongs to the user; add icons only when asked.",
+    },
+    DocumentedDefault {
+        key: "launch-at-startup",
+        value: off::LAUNCH_AT_STARTUP,
+        rationale: "Slows down every login; must be an explicit product decision.",
+    },
+    DocumentedDefault {
+        key: "path-modification",
+        value: off::PATH_MODIFICATION,
+        rationale: "Changes how every other program resolves commands.",
+    },
+    DocumentedDefault {
+        key: "file-associations",
+        value: off::FILE_ASSOCIATIONS,
+        rationale: "Takes over file types from applications the user already chose.",
+    },
+    DocumentedDefault {
+        key: "protocol-associations",
+        value: off::PROTOCOL_ASSOCIATIONS,
+        rationale: "Takes over URL schemes system-wide.",
+    },
+    DocumentedDefault {
+        key: "firewall-rules",
+        value: off::FIREWALL_RULES,
+        rationale: "Opens the machine to the network; needs administrator consent.",
+    },
+    DocumentedDefault {
+        key: "service-installation",
+        value: off::SERVICE_INSTALLATION,
+        rationale: "Background services run without the user; needs elevation.",
+    },
+    DocumentedDefault {
+        key: "telemetry",
+        value: off::TELEMETRY,
+        rationale: "Privacy: no data leaves the machine unless the product opts in.",
+    },
+    DocumentedDefault {
+        key: "automatic-reboot",
+        value: off::AUTOMATIC_REBOOT,
+        rationale: "Rebooting without consent loses the user's work.",
+    },
 ];
 
 /// Installer behaviour switches. Serialized in the project so that a policy
@@ -157,8 +245,16 @@ mod tests {
         let lookup = |k: &str| DEFAULTS.iter().find(|d| d.key == k).map(|d| d.value);
         assert_eq!(lookup("rollback"), Some(p.rollback));
         assert_eq!(lookup("telemetry"), Some(p.telemetry));
-        assert_eq!(lookup("integrity-verification"), Some(p.integrity_verification));
-        assert!(DEFAULTS.iter().filter(|d| !d.value).all(|d| !d.rationale.is_empty()));
+        assert_eq!(
+            lookup("integrity-verification"),
+            Some(p.integrity_verification)
+        );
+        assert!(
+            DEFAULTS
+                .iter()
+                .filter(|d| !d.value)
+                .all(|d| !d.rationale.is_empty())
+        );
         assert_eq!(p.reboot, RebootPolicy::Never);
     }
 }
