@@ -3537,6 +3537,7 @@ name = "inst-builder"
 version = "0.1.0"
 dependencies = [
  "backhand",
+ "dunce",
  "inst-brand",
  "inst-catalog",
  "inst-codegen",

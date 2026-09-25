@@ -79,6 +79,7 @@ goblin = { version = "0.10", default-features = false, features = ["std", "elf32
 ureq = { version = "3", default-features = false, features = ["rustls"] }
 rayon = "1.12"
 windows-sys = "0.61"
+dunce = "1"
 sys-locale = "0.3"
 tempfile = "3"
 proptest = { version = "1", default-features = false, features = ["std"] }

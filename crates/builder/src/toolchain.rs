@@ -5,6 +5,22 @@ use std::process::Command;
 
 use inst_model::platform::{Os, Target};
 
+/// Canonicalizes a path without producing a Windows `\\?\` verbatim path:
+/// `std::path::Path::canonicalize` always adds that prefix on Windows, and
+/// `cargo` cannot parse a manifest `path = "..."` dependency that contains
+/// one ("invalid path url"). `dunce::canonicalize` resolves the same `..`
+/// and symlinks but keeps the legacy path form whenever that form can
+/// still address the target.
+#[cfg(windows)]
+fn canonicalize(p: PathBuf) -> PathBuf {
+    dunce::canonicalize(&p).unwrap_or(p)
+}
+
+#[cfg(not(windows))]
+fn canonicalize(p: PathBuf) -> PathBuf {
+    p.canonicalize().unwrap_or(p)
+}
+
 /// Where the runtime crates (and the lockfile pinning their dependencies)
 /// live. A Studio distribution ships them in `runtime-src/`; development
 /// builds use the workspace.
@@ -27,7 +43,7 @@ impl RuntimeLocation {
             .flatten()
             .find(|p| p.join("crates/runtime/Cargo.toml").is_file())
             .map(|root| RuntimeLocation {
-                root: root.canonicalize().unwrap_or(root),
+                root: canonicalize(root),
             })
     }
 
