@@ -16,6 +16,8 @@ members = [
     "crates/codegen",
     "crates/builder",
     "crates/cli",
+    "crates/runtime-ui",
+    "crates/studio",
 ]
 default-members = [
     "crates/brand",
@@ -33,6 +35,8 @@ default-members = [
     "crates/codegen",
     "crates/builder",
     "crates/cli",
+    "crates/runtime-ui",
+    "crates/studio",
 ]
 
 [workspace.package]
@@ -59,8 +63,12 @@ inst-analyzer = { path = "crates/analyzer" }
 inst-doctor = { path = "crates/doctor" }
 inst-codegen = { path = "crates/codegen" }
 inst-builder = { path = "crates/builder" }
+inst-runtime-ui = { path = "crates/runtime-ui" }
 
 # External crates. Default features are off unless there is a reason.
+# GPUI Kit pulls in gpui + gpui-component + default assets; both the
+# generated installer UI and the Studio depend on it.
+gpui-kit = "0.6"
 blake3 = { version = "1.8", default-features = false, features = ["std"] }
 zstd = { version = "0.14", default-features = false }
 liblzma = { version = "0.4", default-features = false, features = ["static"] }

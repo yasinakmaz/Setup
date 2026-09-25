@@ -1,0 +1,16 @@
+[package]
+name = "inst-runtime-ui"
+description = "Single-screen graphical frontend for generated installers (GPUI)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+inst-runtime = { path = "../runtime", default-features = false }
+inst-i18n = { workspace = true, features = ["detect"] }
+gpui-kit.workspace = true

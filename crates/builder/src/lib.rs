@@ -527,9 +527,9 @@ fn build_target(
     } else {
         "executable".to_owned()
     };
-    let _ = fs::remove_file(&runtime_stub)
-        .ok()
-        .filter(|_| runtime_stub != staging);
+    if runtime_stub != staging {
+        let _ = fs::remove_file(&runtime_stub);
+    }
     if payload_target != staging {
         let _ = fs::remove_file(&payload_target);
     }

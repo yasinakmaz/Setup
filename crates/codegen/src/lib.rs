@@ -93,6 +93,15 @@ pub fn generate(input: &CodegenInput<'_>) -> Result<Generated, CodegenError> {
     features.dedup_by(|a, b| a.0 == b.0);
     let names: Vec<&str> = features.iter().map(|(n, _)| n.as_str()).collect();
 
+    // The report lists "gui" as an included capability too, even though it
+    // is not an `inst-runtime` cargo feature (the GUI is a separate optional
+    // dependency, `inst-runtime-ui`) and so must stay out of `names`.
+    let mut report_features = features.clone();
+    if input.gui {
+        report_features.push(("gui".to_owned(), "graphical installer".to_owned()));
+        report_features.sort();
+    }
+
     let mut files = vec![
         GeneratedFile {
             path: "Cargo.toml",
@@ -127,7 +136,10 @@ pub fn generate(input: &CodegenInput<'_>) -> Result<Generated, CodegenError> {
             contents: ico.clone(),
         });
     }
-    Ok(Generated { files, features })
+    Ok(Generated {
+        files,
+        features: report_features,
+    })
 }
 
 #[cfg(test)]
