@@ -10,3 +10,18 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = ["ureq"]
+# HTTPS transport (rustls + platform certificate verifier).
+ureq = ["dep:ureq"]
+
+[dependencies]
+inst-brand.workspace = true
+inst-fsx.workspace = true
+inst-wire.workspace = true
+blake3.workspace = true
+sha2 = { version = "0.10", default-features = false, features = ["std"] }
+ureq = { workspace = true, optional = true, features = ["platform-verifier"] }
+
+[dev-dependencies]
+tempfile.workspace = true
