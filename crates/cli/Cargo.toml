@@ -10,3 +10,17 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[[bin]]
+name = "installer-studio-cli"
+path = "src/main.rs"
+
+[dependencies]
+inst-analyzer.workspace = true
+inst-brand.workspace = true
+inst-builder.workspace = true
+inst-catalog.workspace = true
+inst-codegen.workspace = true
+inst-doctor.workspace = true
+inst-fetch.workspace = true
+inst-fsx.workspace = true
+inst-model.workspace = true

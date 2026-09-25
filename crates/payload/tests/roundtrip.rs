@@ -1,8 +1,12 @@
 //! End-to-end payload tests: build → locate → extract → verify, plus
 //! corruption and hostile-input handling.
 
-use std::fs::{self, File};
-use std::io::{Cursor, Write};
+use std::fs;
+#[cfg(unix)]
+use std::fs::File;
+use std::io::Cursor;
+#[cfg(unix)]
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use inst_payload::format::{Codec, Filter, Index};

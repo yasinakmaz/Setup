@@ -21,7 +21,10 @@ use inst_model::features::runtime_features;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CodegenError {
     /// The project uses something this runtime version does not implement.
-    Unsupported { action: String, what: String },
+    Unsupported {
+        action: String,
+        what: String,
+    },
     Invalid(String),
 }
 
@@ -52,17 +55,29 @@ pub struct Generated {
 
 /// Runtime features that exist as cargo features of `inst-runtime`.
 const RUNTIME_FEATURES: &[&str] = &[
-    "zstd", "xz", "lang-tr", "lang-ar", "lang-es", "lang-fr", "lang-de", "lang-ru", "download", "scripts",
-    "services", "registry", "environment",
+    "zstd",
+    "xz",
+    "lang-tr",
+    "lang-ar",
+    "lang-es",
+    "lang-fr",
+    "lang-de",
+    "lang-ru",
+    "download",
+    "scripts",
+    "services",
+    "registry",
+    "environment",
 ];
 
 pub fn generate(input: &CodegenInput<'_>) -> Result<Generated, CodegenError> {
     let main = emit::main_rs(input)?;
-    let mut features: Vec<(String, String)> = runtime_features(input.project, input.target, input.gui)
-        .into_iter()
-        .filter(|f| RUNTIME_FEATURES.contains(&f.name))
-        .map(|f| (f.name.to_owned(), f.reason))
-        .collect();
+    let mut features: Vec<(String, String)> =
+        runtime_features(input.project, input.target, input.gui)
+            .into_iter()
+            .filter(|f| RUNTIME_FEATURES.contains(&f.name))
+            .map(|f| (f.name.to_owned(), f.reason))
+            .collect();
     if input
         .prerequisites
         .iter()

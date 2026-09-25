@@ -37,14 +37,26 @@ pub enum PrereqDetection {
         version_value: Option<String>,
         per_user_too: bool,
     },
-    DotnetSharedFramework { framework: String },
-    Command { program: String, args: Vec<String>, stderr: bool },
-    Service { name: String },
+    DotnetSharedFramework {
+        framework: String,
+    },
+    Command {
+        program: String,
+        args: Vec<String>,
+        stderr: bool,
+    },
+    Service {
+        name: String,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PrereqSource {
-    Download { urls: Vec<String>, hash: String, size: u64 },
+    Download {
+        urls: Vec<String>,
+        hash: String,
+        size: u64,
+    },
     /// Path of the package inside the payload.
     Embedded { payload_path: String },
 }

@@ -10,3 +10,11 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[dependencies]
+inst-analyzer.workspace = true
+inst-catalog.workspace = true
+inst-model.workspace = true
+
+[dev-dependencies]
+inst-i18n.workspace = true
+tempfile.workspace = true

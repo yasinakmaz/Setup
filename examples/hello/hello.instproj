@@ -1,0 +1,119 @@
+schema = 1
+
+[product]
+id = "com.example.hello"
+name = "Hello Example"
+publisher = "Example Corp"
+version = "1.0.0"
+description = { en = "A tiny application used to test the installer pipeline.", tr = "Kurulum hattını test etmek için küçük bir uygulama.", ar = "تطبيق صغير لاختبار مسار التثبيت." }
+
+[application]
+source = "app"
+main-executable = "bin/hello"
+exclude = [
+    "*.pdb",
+    "*.ilk",
+    "*.tmp",
+    "*.log",
+    "Thumbs.db",
+    ".DS_Store",
+    ".git/",
+]
+
+[install]
+privileges = "auto"
+allow-change-location = true
+
+[install.location]
+base = "auto"
+
+[integration]
+start-menu = true
+desktop-shortcut = false
+launch-at-startup = false
+add-to-path = false
+file-associations = []
+protocols = []
+firewall-rules = []
+offer-launch = true
+
+[policy]
+integrity-verification = true
+rollback = true
+logging = true
+silent-install = true
+silent-uninstall = true
+uninstaller = true
+detect-existing-version = true
+architecture-check = true
+disk-space-check = true
+prerequisite-detection = true
+atomic-file-operations = true
+failure-recovery = true
+telemetry = false
+reboot = "never"
+same-version = "repair"
+allow-downgrade = false
+
+[targets]
+windows-x64 = false
+linux-x64 = true
+windows-arm64 = false
+linux-arm64 = false
+
+[compression]
+profile = "auto"
+accelerator = "auto"
+block-size-mib = 0
+
+[ui]
+template = "modern"
+languages = [
+    "en",
+    "tr",
+    "ar",
+]
+fallback-language = "en"
+language-selector = true
+show-license = false
+
+[[ui.fields]]
+id = "greeting"
+label = { en = "Greeting", tr = "Selamlama", ar = "التحية" }
+type = "text"
+default = "Merhaba"
+
+[[ui.fields]]
+id = "api_token"
+label = { en = "API token", tr = "API anahtarı", ar = "رمز واجهة البرمجة" }
+type = "password"
+
+[[actions]]
+id = "write-greeting"
+name = "Write greeting"
+event = "after-install"
+kind = "script"
+shell = "sh"
+source = "inline"
+code = """
+#!/bin/sh
+set -eu
+printf '%s\n' "$GREETING" > "$INST_INSTALL_DIR/config/greeting.txt"
+# The token must never appear in logs, even when printed by mistake.
+echo "token is $API_TOKEN"
+"""
+timeout-secs = 30
+condition = { if = "os", os = "linux" }
+
+[actions.env]
+GREETING = { ref = "input", field = "greeting" }
+API_TOKEN = { ref = "secret", from = "input", field = "api_token" }
+
+[signing]
+require-signed = false
+
+[update]
+check-for-updates-default = false
+
+[studio]
+mode = "simple"

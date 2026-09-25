@@ -1,0 +1,3 @@
+#!/bin/sh
+# Example application shipped by the Hello example project.
+echo "Hello from $(dirname "$0")"

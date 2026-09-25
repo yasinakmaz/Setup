@@ -10,3 +10,16 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[dependencies]
+inst-brand.workspace = true
+inst-catalog.workspace = true
+inst-codegen.workspace = true
+inst-fetch = { workspace = true, features = ["ureq"] }
+inst-fsx.workspace = true
+inst-model.workspace = true
+inst-payload = { workspace = true, features = ["read", "write", "zstd", "xz"] }
+backhand = { version = "0.25", default-features = false, features = ["gzip"] }
+tempfile.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_System_SystemInformation"] }

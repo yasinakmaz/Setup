@@ -27,6 +27,8 @@ pub struct Session {
     pub mode: Mode,
     pub default_dir: PathBuf,
     pub exe: PathBuf,
+    /// File holding the payload (`$APPIMAGE` inside an AppImage).
+    pub payload_file: PathBuf,
     /// The payload, or why it could not be read (damaged setup).
     pub payload: Result<inst_payload::Payload, InstallError>,
     pub cancel: Arc<AtomicBool>,
@@ -50,13 +52,14 @@ impl Session {
             "product" => app.product.id, "version" => app.product.version, "language" => language.code());
 
         let exe = std::env::current_exe().unwrap_or_default();
+        let payload_file = appimage_file().unwrap_or_else(|| exe.clone());
         let payload = if cli.uninstall {
             Err(InstallError::new(
                 ErrorKind::Unexpected,
                 "uninstaller has no payload",
             ))
         } else {
-            std::fs::File::open(&exe)
+            std::fs::File::open(&payload_file)
                 .map_err(|e| InstallError::io("opening the setup file", &e))
                 .and_then(|mut f| inst_payload::Payload::locate(&mut f).map_err(InstallError::from))
         };
@@ -98,6 +101,7 @@ impl Session {
             mode,
             default_dir,
             exe,
+            payload_file,
             payload,
             cancel: Arc::new(AtomicBool::new(false)),
         }
@@ -190,6 +194,7 @@ impl Session {
             events,
             &self.cancel,
             self.exe.clone(),
+            self.payload_file.clone(),
             payload,
         );
         let result = (self.app.install)(&mut cx).and_then(|()| cx.commit());
@@ -306,10 +311,19 @@ impl Session {
     /// Verifies every payload block (for `--verify`).
     pub fn verify(&self) -> Result<(), InstallError> {
         let payload = self.payload.as_ref().map_err(Clone::clone)?;
-        let mut f = std::fs::File::open(&self.exe)
+        let mut f = std::fs::File::open(&self.payload_file)
             .map_err(|e| InstallError::io("opening the setup file", &e))?;
         inst_payload::read::verify_blocks(payload, &mut f, |_| {}).map_err(InstallError::from)
     }
+}
+
+/// The AppImage file when running inside one (payload lives there).
+fn appimage_file() -> Option<PathBuf> {
+    if !cfg!(target_os = "linux") {
+        return None;
+    }
+    let p = PathBuf::from(std::env::var_os("APPIMAGE")?);
+    (p.is_absolute() && p.is_file()).then_some(p)
 }
 
 fn make_logger(app: &'static App, cli: &CliOptions) -> (Logger, Option<PathBuf>) {

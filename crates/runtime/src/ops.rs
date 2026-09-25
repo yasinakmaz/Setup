@@ -47,7 +47,8 @@ impl Install<'_> {
             "os" => &format!("{:?}", self.c.env.os), "arch" => &format!("{:?}", self.c.env.arch),
             "elevated" => self.c.env.elevated, "mode" => &format!("{:?}", self.options.mode));
 
-        if (settings.requires_elevation || settings.scope == Scope::Machine) && !self.c.env.elevated {
+        if (settings.requires_elevation || settings.scope == Scope::Machine) && !self.c.env.elevated
+        {
             return Err(InstallError::new(
                 ErrorKind::RequiresAdmin,
                 "a machine-wide installation needs administrator/root rights",
@@ -197,7 +198,7 @@ impl Install<'_> {
             .min(blocks.len().max(1));
         let cancel = self.c.cancel;
         let payload = &self.payload;
-        let exe = &self.exe;
+        let exe = &self.payload_file;
 
         {
             let mut bufs = ExtractBuffers::default();
@@ -499,7 +500,14 @@ impl Install<'_> {
         let mut src = File::open(&self.exe).map_err(io_err("reading the setup file"))?;
         let mut out =
             inst_fsx::AtomicFile::create(dest).map_err(io_err("writing the uninstaller"))?;
-        let mut remaining = self.payload.base;
+        // Inside an AppImage the running executable carries no payload.
+        let mut remaining = if self.payload_file == self.exe {
+            self.payload.base
+        } else {
+            src.metadata()
+                .map_err(io_err("reading the setup file"))?
+                .len()
+        };
         let mut buf = vec![0u8; 256 << 10];
         src.seek(SeekFrom::Start(0))
             .map_err(io_err("reading the setup file"))?;

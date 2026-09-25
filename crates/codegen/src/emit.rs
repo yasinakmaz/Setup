@@ -50,7 +50,8 @@ fn folder(f: KnownFolder) -> &'static str {
 
 fn path_rel(p: &PathExpr) -> Result<String, CodegenError> {
     if !p.rel.is_empty() {
-        inst_fsx::relpath::validate(&p.rel).map_err(|e| CodegenError::Invalid(format!("path {:?}: {e}", p.rel)))?;
+        inst_fsx::relpath::validate(&p.rel)
+            .map_err(|e| CodegenError::Invalid(format!("path {:?}: {e}", p.rel)))?;
     }
     Ok(lit(&p.rel))
 }
@@ -79,10 +80,14 @@ fn value(v: &Value) -> Result<String, CodegenError> {
         Value::Ref(r) => match r {
             ValueRef::Input { field } => format!("Value::Input({})", lit(field)),
             ValueRef::Secret { secret } => match secret {
-                SecretRef::Input { field } => format!("Value::Secret(Secret::Input({}))", lit(field)),
+                SecretRef::Input { field } => {
+                    format!("Value::Secret(Secret::Input({}))", lit(field))
+                }
                 SecretRef::Env { var } => format!("Value::Secret(Secret::Env({}))", lit(var)),
             },
-            ValueRef::Path { path } => format!("Value::Path({}, {})", folder(path.base), path_rel(path)?),
+            ValueRef::Path { path } => {
+                format!("Value::Path({}, {})", folder(path.base), path_rel(path)?)
+            }
             ValueRef::ProductVersion => "Value::ProductVersion".into(),
             ValueRef::ProductName => "Value::ProductName".into(),
             ValueRef::Captured { name } => format!("Value::Captured({})", lit(name)),
@@ -135,7 +140,9 @@ impl Emitter<'_> {
             .prerequisites
             .iter()
             .position(|p| p.id == id)
-            .ok_or_else(|| CodegenError::Invalid(format!("condition references unknown prerequisite {id:?}")))
+            .ok_or_else(|| {
+                CodegenError::Invalid(format!("condition references unknown prerequisite {id:?}"))
+            })
     }
 
     /// Compiles a condition to a Rust boolean expression over `cx`.
@@ -145,7 +152,9 @@ impl Emitter<'_> {
         }
         let install_only = |what: &str| -> Result<String, CodegenError> {
             if ctx == Ctx::Uninstall {
-                Err(CodegenError::Invalid(format!("condition '{what}' is not available in uninstall actions")))
+                Err(CodegenError::Invalid(format!(
+                    "condition '{what}' is not available in uninstall actions"
+                )))
             } else {
                 Ok(String::new())
             }
@@ -174,15 +183,25 @@ impl Emitter<'_> {
             }
             Condition::PrerequisiteMissing { prerequisite } => {
                 install_only("prerequisite missing")?;
-                format!("cx.prerequisite_missing({})", self.prereq_index(prerequisite)?)
+                format!(
+                    "cx.prerequisite_missing({})",
+                    self.prereq_index(prerequisite)?
+                )
             }
             Condition::PrerequisiteInstalled { prerequisite } => {
                 install_only("prerequisite installed")?;
-                format!("!cx.prerequisite_missing({})", self.prereq_index(prerequisite)?)
+                format!(
+                    "!cx.prerequisite_missing({})",
+                    self.prereq_index(prerequisite)?
+                )
             }
-            Condition::FileExists { path } => format!("cx.file_exists({}, {})", folder(path.base), path_rel(path)?),
+            Condition::FileExists { path } => {
+                format!("cx.file_exists({}, {})", folder(path.base), path_rel(path)?)
+            }
             Condition::EnvVarSet { name } => format!("cx.env_var_set({})", lit(name)),
-            Condition::EnvVarEquals { name, value } => format!("cx.env_var_equals({}, {})", lit(name), lit(value)),
+            Condition::EnvVarEquals { name, value } => {
+                format!("cx.env_var_equals({}, {})", lit(name), lit(value))
+            }
             Condition::CommandAvailable { name } => format!("cx.command_available({})", lit(name)),
             Condition::Elevated => "cx.elevated()".into(),
             Condition::FreshInstall => {
@@ -239,11 +258,17 @@ impl Emitter<'_> {
                     Shell::Sh => "Shell::Sh".to_owned(),
                     Shell::Custom { program, args } => {
                         let args: Vec<String> = args.iter().map(|a| lit(a)).collect();
-                        format!("Shell::Custom {{ program: {}, args: &[{}] }}", lit(program), args.join(", "))
+                        format!(
+                            "Shell::Custom {{ program: {}, args: &[{}] }}",
+                            lit(program),
+                            args.join(", ")
+                        )
                     }
                 };
                 let source = match &s.source {
-                    ScriptSource::Inline { code } => format!("ScriptSource::Embedded({})", lit(code)),
+                    ScriptSource::Inline { code } => {
+                        format!("ScriptSource::Embedded({})", lit(code))
+                    }
                     ScriptSource::Project { path } => {
                         let code = self
                             .input
@@ -251,11 +276,16 @@ impl Emitter<'_> {
                             .iter()
                             .find(|(id, _)| id == &a.id)
                             .map(|(_, c)| c)
-                            .ok_or_else(|| CodegenError::Invalid(format!("script file {path:?} was not loaded")))?;
+                            .ok_or_else(|| {
+                                CodegenError::Invalid(format!(
+                                    "script file {path:?} was not loaded"
+                                ))
+                            })?;
                         format!("ScriptSource::Embedded({})", lit(code))
                     }
                     ScriptSource::Payload { path } => {
-                        inst_fsx::relpath::validate(path).map_err(|e| CodegenError::Invalid(e.to_string()))?;
+                        inst_fsx::relpath::validate(path)
+                            .map_err(|e| CodegenError::Invalid(e.to_string()))?;
                         format!("ScriptSource::Payload({})", lit(path))
                     }
                 };
@@ -283,7 +313,8 @@ impl Emitter<'_> {
                 format!("cx.run_script(&{n})?;")
             }
             ActionKind::Run(r) => {
-                inst_fsx::relpath::validate(&r.program).map_err(|e| CodegenError::Invalid(e.to_string()))?;
+                inst_fsx::relpath::validate(&r.program)
+                    .map_err(|e| CodegenError::Invalid(e.to_string()))?;
                 let body = format!(
                     "RunProgram {{ id: {}, name: {}, program: {}, args: {}, wait: {}, timeout_secs: {}, allowed_exit_codes: {}, on_failure: {} }}",
                     lit(&a.id),
@@ -298,7 +329,11 @@ impl Emitter<'_> {
                 let n = self.new_static("RunProgram", body);
                 format!("cx.run_program(&{n})?;")
             }
-            _ if ctx == Ctx::Uninstall => return Err(unsupported("only script and program actions run during uninstall")),
+            _ if ctx == Ctx::Uninstall => {
+                return Err(unsupported(
+                    "only script and program actions run during uninstall",
+                ));
+            }
             ActionKind::Service(s) => {
                 let start = match s.start {
                     ServiceStart::Automatic => "StartMode::Automatic",
@@ -350,8 +385,12 @@ impl Emitter<'_> {
             ActionKind::Environment(e) => {
                 let op = match &e.operation {
                     EnvOperation::Set { value: v } => format!("EnvOp::Set({})", value(v)?),
-                    EnvOperation::AppendPath { path } => format!("EnvOp::Append({}, {})", folder(path.base), path_rel(path)?),
-                    EnvOperation::PrependPath { path } => format!("EnvOp::Prepend({}, {})", folder(path.base), path_rel(path)?),
+                    EnvOperation::AppendPath { path } => {
+                        format!("EnvOp::Append({}, {})", folder(path.base), path_rel(path)?)
+                    }
+                    EnvOperation::PrependPath { path } => {
+                        format!("EnvOp::Prepend({}, {})", folder(path.base), path_rel(path)?)
+                    }
                 };
                 let body = format!(
                     "EnvWrite {{ id: {}, machine: {}, name: {}, op: {op}, on_failure: {} }}",
@@ -369,7 +408,9 @@ impl Emitter<'_> {
                 ));
             }
             ActionKind::Http(_) => {
-                return Err(unsupported("HTTP actions are not implemented in this runtime version"));
+                return Err(unsupported(
+                    "HTTP actions are not implemented in this runtime version",
+                ));
             }
         };
         Ok(Some(match guard {
@@ -418,7 +459,11 @@ impl Emitter<'_> {
                 let actions: Vec<&Action> = p
                     .actions
                     .iter()
-                    .filter(|a| a.enabled && a.event == Some(event) && implicit_step(&a.kind, event) == *step)
+                    .filter(|a| {
+                        a.enabled
+                            && a.event == Some(event)
+                            && implicit_step(&a.kind, event) == *step
+                    })
                     .collect();
                 for a in actions {
                     if let Some(call) = self.action_call(a, Ctx::Install)? {
@@ -447,7 +492,9 @@ fn step_label(step: &Step) -> (&'static str, u32) {
         Step::InstallPrerequisites => ("Msg::StepPrerequisites", 20),
         Step::ExtractApplication => ("Msg::StepExtracting", 60),
         Step::ConfigureDatabase => ("Msg::StepDatabase", 5),
-        Step::RunActions { .. } | Step::RunAction { .. } | Step::InstallServices => ("Msg::StepTasks", 3),
+        Step::RunActions { .. } | Step::RunAction { .. } | Step::InstallServices => {
+            ("Msg::StepTasks", 3)
+        }
         Step::CreateShortcuts => ("Msg::StepShortcuts", 1),
         Step::ApplyIntegration | Step::RegisterUninstaller => ("Msg::StepRegistering", 1),
         Step::VerifyInstallation => ("Msg::StepVerifying", 2),
@@ -463,7 +510,9 @@ fn prereq_arg(a: &str) -> Result<String, CodegenError> {
             let field = rest
                 .strip_suffix('}')
                 .filter(|f| !f.contains(['{', '}']))
-                .ok_or_else(|| CodegenError::Invalid(format!("unsupported argument template {a:?}")))?;
+                .ok_or_else(|| {
+                    CodegenError::Invalid(format!("unsupported argument template {a:?}"))
+                })?;
             let prefix = &a[..start];
             return Ok(if prefix.is_empty() {
                 format!("Arg::{variant}({})", lit(field))
@@ -488,12 +537,21 @@ fn prerequisites(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
                 "Detection::Registry {{ key: {}, value: {}, version_value: {}, per_user_too: {per_user_too} }}",
                 lit(key),
                 lit(value),
-                version_value.as_deref().map_or("None".into(), |v| format!("Some({})", lit(v)))
+                version_value
+                    .as_deref()
+                    .map_or("None".into(), |v| format!("Some({})", lit(v)))
             ),
             PrereqDetection::DotnetSharedFramework { framework } => {
-                format!("Detection::DotnetSharedFramework {{ framework: {} }}", lit(framework))
+                format!(
+                    "Detection::DotnetSharedFramework {{ framework: {} }}",
+                    lit(framework)
+                )
             }
-            PrereqDetection::Command { program, args, stderr } => {
+            PrereqDetection::Command {
+                program,
+                args,
+                stderr,
+            } => {
                 let args: Vec<String> = args.iter().map(|a| lit(a)).collect();
                 format!(
                     "Detection::Command {{ program: {}, args: &[{}], stderr: {stderr} }}",
@@ -501,14 +559,22 @@ fn prerequisites(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
                     args.join(", ")
                 )
             }
-            PrereqDetection::Service { name } => format!("Detection::Service {{ name: {} }}", lit(name)),
+            PrereqDetection::Service { name } => {
+                format!("Detection::Service {{ name: {} }}", lit(name))
+            }
         };
         let source = match &p.source {
             PrereqSource::Download { urls, hash, size } => {
                 let urls: Vec<String> = urls.iter().map(|u| lit(u)).collect();
-                format!("Source::Download {{ urls: &[{}], hash: {}, size: {size} }}", urls.join(", "), lit(hash))
+                format!(
+                    "Source::Download {{ urls: &[{}], hash: {}, size: {size} }}",
+                    urls.join(", "),
+                    lit(hash)
+                )
             }
-            PrereqSource::Embedded { payload_path } => format!("Source::Embedded {{ path: {} }}", lit(payload_path)),
+            PrereqSource::Embedded { payload_path } => {
+                format!("Source::Embedded {{ path: {} }}", lit(payload_path))
+            }
         };
         let args: Result<Vec<String>, _> = p.args.iter().map(|a| prereq_arg(a)).collect();
         let _ = writeln!(
@@ -517,7 +583,9 @@ fn prerequisites(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
             lit(&p.id),
             lit(&p.name),
             lit(&p.version),
-            p.min_version.as_deref().map_or("None".into(), |v| format!("Some({})", lit(v))),
+            p.min_version
+                .as_deref()
+                .map_or("None".into(), |v| format!("Some({})", lit(v))),
             p.same_major,
             lit(&p.file_name),
             match p.kind {
@@ -528,7 +596,9 @@ fn prerequisites(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
             i32s(&p.success_codes),
             i32s(&p.reboot_codes),
             i32s(&p.already_installed_codes),
-            p.publisher.as_deref().map_or("None".into(), |v| format!("Some({})", lit(v))),
+            p.publisher
+                .as_deref()
+                .map_or("None".into(), |v| format!("Some({})", lit(v))),
         );
     }
     out.push_str("];\n");
@@ -539,7 +609,13 @@ fn prerequisites(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
 pub fn folder_name(name: &str) -> String {
     let cleaned: String = name
         .chars()
-        .map(|c| if c.is_control() || "\\/:*?\"<>|".contains(c) { '_' } else { c })
+        .map(|c| {
+            if c.is_control() || "\\/:*?\"<>|".contains(c) {
+                '_'
+            } else {
+                c
+            }
+        })
         .collect();
     let trimmed = cleaned.trim().trim_end_matches(['.', ' ']);
     if trimmed.is_empty() || inst_fsx::relpath::validate_component(trimmed).is_err() {
@@ -583,7 +659,10 @@ pub fn main_rs(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
     } else {
         "None"
     };
-    let opt = |v: &Option<String>| v.as_deref().map_or("None".to_owned(), |x| format!("Some({})", lit(x)));
+    let opt = |v: &Option<String>| {
+        v.as_deref()
+            .map_or("None".to_owned(), |x| format!("Some({})", lit(x)))
+    };
     let args: Vec<String> = p.application.arguments.iter().map(|a| lit(a)).collect();
     let _ = writeln!(
         s,
@@ -604,15 +683,23 @@ pub fn main_rs(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
     s.push_str("static FIELDS: &[Field] = &[\n");
     for f in &p.ui.fields {
         let kind = match &f.kind {
-            InputKind::Text { default } => format!("FieldKind::Text {{ default: {} }}", lit(default)),
+            InputKind::Text { default } => {
+                format!("FieldKind::Text {{ default: {} }}", lit(default))
+            }
             InputKind::Password => "FieldKind::Password".into(),
-            InputKind::Checkbox { default } => format!("FieldKind::Checkbox {{ default: {default} }}"),
+            InputKind::Checkbox { default } => {
+                format!("FieldKind::Checkbox {{ default: {default} }}")
+            }
             InputKind::Select { options, default } => {
                 let opts: Vec<String> = options
                     .iter()
                     .map(|(k, v)| format!("({}, {})", lit(k), lit(v.get(fallback))))
                     .collect();
-                format!("FieldKind::Select {{ options: &[{}], default: {} }}", opts.join(", "), lit(default))
+                format!(
+                    "FieldKind::Select {{ options: &[{}], default: {} }}",
+                    opts.join(", "),
+                    lit(default)
+                )
             }
             InputKind::Number { default, min, max } => {
                 format!("FieldKind::Number {{ default: {default}, min: {min}, max: {max} }}")
@@ -637,7 +724,13 @@ pub fn main_rs(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
     } else {
         "Scope::User"
     };
-    let folder = folder_name(p.install.location.folder.as_deref().unwrap_or(&p.product.name));
+    let folder = folder_name(
+        p.install
+            .location
+            .folder
+            .as_deref()
+            .unwrap_or(&p.product.name),
+    );
     let lang_list: Vec<&str> = langs.iter().map(|l| lang(*l)).collect();
     let _ = writeln!(
         s,
@@ -683,9 +776,15 @@ pub fn main_rs(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
 
     // Installation graph → straight-line code.
     let graph = p.effective_graph();
-    let issues: Vec<_> = graph.validate(p).into_iter().filter(|i| !i.is_warning()).collect();
+    let issues: Vec<_> = graph
+        .validate(p)
+        .into_iter()
+        .filter(|i| !i.is_warning())
+        .collect();
     if let Some(issue) = issues.first() {
-        return Err(CodegenError::Invalid(format!("installation graph: {issue}")));
+        return Err(CodegenError::Invalid(format!(
+            "installation graph: {issue}"
+        )));
     }
     let order = graph
         .topo_order()
@@ -726,7 +825,11 @@ pub fn main_rs(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
         }
         let calls = e.step_body(&node.step)?;
         let (label, weight) = step_label(&node.step);
-        let _ = writeln!(steps, "    StepInfo {{ id: {}, label: {label}, weight: {weight} }},", lit(&node.id));
+        let _ = writeln!(
+            steps,
+            "    StepInfo {{ id: {}, label: {label}, weight: {weight} }},",
+            lit(&node.id)
+        );
         let k = step_index;
         step_index += 1;
         let node_cond = match &node.condition {
@@ -742,7 +845,10 @@ pub fn main_rs(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
                 let _ = writeln!(body, "    if a{n} {{ cx.skip({k}); }}");
             }
             c => {
-                let _ = writeln!(body, "    if a{n} {{ if {c} {{ {run} }} else {{ cx.skip({k}); }} }}");
+                let _ = writeln!(
+                    body,
+                    "    if a{n} {{ if {c} {{ {run} }} else {{ cx.skip({k}); }} }}"
+                );
             }
         }
     }
@@ -755,8 +861,15 @@ pub fn main_rs(input: &CodegenInput<'_>) -> Result<String, CodegenError> {
         ("before_uninstall", LifecycleEvent::BeforeUninstall),
         ("after_uninstall", LifecycleEvent::AfterUninstall),
     ] {
-        let _ = writeln!(hooks, "fn {fname}(cx: &mut Uninstall<'_>) -> Result<(), InstallError> {{");
-        for a in p.actions.iter().filter(|a| a.enabled && a.event == Some(event)) {
+        let _ = writeln!(
+            hooks,
+            "fn {fname}(cx: &mut Uninstall<'_>) -> Result<(), InstallError> {{"
+        );
+        for a in p
+            .actions
+            .iter()
+            .filter(|a| a.enabled && a.event == Some(event))
+        {
             if let Some(call) = e.action_call(a, Ctx::Uninstall)? {
                 let _ = writeln!(hooks, "    {call}");
             }

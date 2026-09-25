@@ -127,6 +127,8 @@ pub struct Install<'a> {
     pub(crate) c: Common<'a>,
     pub(crate) options: &'a InstallOptions,
     pub(crate) exe: PathBuf,
+    /// File holding the payload: the executable itself, or the AppImage.
+    pub(crate) payload_file: PathBuf,
     pub(crate) payload: inst_payload::Payload,
     pub(crate) journal: Option<Journal>,
     pub(crate) files: Vec<ManifestFile>,
@@ -149,6 +151,7 @@ impl<'a> Install<'a> {
         events: &'a dyn EventSink,
         cancel: &'a AtomicBool,
         exe: PathBuf,
+        payload_file: PathBuf,
         payload: inst_payload::Payload,
     ) -> Self {
         Install {
@@ -164,6 +167,7 @@ impl<'a> Install<'a> {
             },
             options,
             exe,
+            payload_file,
             payload,
             journal: None,
             files: Vec::new(),

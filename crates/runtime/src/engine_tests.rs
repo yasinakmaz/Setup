@@ -234,6 +234,7 @@ fn session(app: &'static App, exe: &Path, dir: &Path) -> Session {
         previous,
         default_dir: dir.to_path_buf(),
         exe: exe.to_path_buf(),
+        payload_file: exe.to_path_buf(),
         payload,
         cancel: Arc::new(AtomicBool::new(false)),
     }

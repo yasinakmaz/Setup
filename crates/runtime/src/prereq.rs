@@ -256,7 +256,7 @@ impl Install<'_> {
         ));
         std::fs::create_dir_all(&dir)
             .map_err(|e| InstallError::io("preparing a prerequisite", &e))?;
-        let mut f = std::fs::File::open(&self.exe)
+        let mut f = std::fs::File::open(&self.payload_file)
             .map_err(|e| InstallError::io("opening the setup file", &e))?;
         let block = file.block as usize;
         let raw = self
@@ -318,7 +318,8 @@ impl Install<'_> {
                         format!("{prefix}{}", self.resolve(&crate::spec::Value::Input(id))?)
                     }
                     Arg::PrefixedSecret(prefix, id) => {
-                        let v = self.resolve(&crate::spec::Value::Secret(crate::spec::Secret::Input(id)))?;
+                        let v = self
+                            .resolve(&crate::spec::Value::Secret(crate::spec::Secret::Input(id)))?;
                         let arg = format!("{prefix}{v}");
                         self.c.logger.redactor().register(&arg);
                         arg

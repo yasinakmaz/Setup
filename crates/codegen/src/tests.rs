@@ -20,16 +20,29 @@ fn workspace_root() -> PathBuf {
 }
 
 fn rich_project() -> Project {
-    let mut p = Project::new("Acme \"Orders\"", "Acme Ltd.", Version::parse("1.4.0").expect("v"), "dist".into());
+    let mut p = Project::new(
+        "Acme \"Orders\"",
+        "Acme Ltd.",
+        Version::parse("1.4.0").expect("v"),
+        "dist".into(),
+    );
     p.application.main_executable = Some("bin/orders".into());
     p.product.description = LocalizedText::plain("Order management");
-    p.product.description.set(inst_i18n::Language::Tr, "Sipariş yönetimi".into());
-    p.ui.languages = vec![inst_i18n::Language::En, inst_i18n::Language::Tr, inst_i18n::Language::Ar];
+    p.product
+        .description
+        .set(inst_i18n::Language::Tr, "Sipariş yönetimi".into());
+    p.ui.languages = vec![
+        inst_i18n::Language::En,
+        inst_i18n::Language::Tr,
+        inst_i18n::Language::Ar,
+    ];
     p.ui.fields = vec![
         InputField {
             id: "port".into(),
             label: "Port".into(),
-            kind: InputKind::Text { default: "8080".into() },
+            kind: InputKind::Text {
+                default: "8080".into(),
+            },
             required: true,
             prominent: false,
         },
@@ -52,11 +65,20 @@ fn rich_project() -> Project {
             kind: ActionKind::Script(ScriptAction {
                 shell: Shell::Sh,
                 source: ScriptSource::Inline {
-                    code: "#!/bin/sh\necho \"port=$PORT\" > \"$INST_INSTALL_DIR/port.txt\"\n".into(),
+                    code: "#!/bin/sh\necho \"port=$PORT\" > \"$INST_INSTALL_DIR/port.txt\"\n"
+                        .into(),
                 },
-                args: vec![Value::literal("--quiet"), Value::Ref(ValueRef::ProductVersion)],
+                args: vec![
+                    Value::literal("--quiet"),
+                    Value::Ref(ValueRef::ProductVersion),
+                ],
                 env: [
-                    ("PORT".to_owned(), Value::Ref(ValueRef::Input { field: "port".into() })),
+                    (
+                        "PORT".to_owned(),
+                        Value::Ref(ValueRef::Input {
+                            field: "port".into(),
+                        }),
+                    ),
                     (
                         "PASS".to_owned(),
                         Value::Ref(ValueRef::Secret {
@@ -125,7 +147,9 @@ fn rich_project() -> Project {
             enabled: true,
             kind: ActionKind::Script(ScriptAction {
                 shell: Shell::Sh,
-                source: ScriptSource::Payload { path: "scripts/cleanup.sh".into() },
+                source: ScriptSource::Payload {
+                    path: "scripts/cleanup.sh".into(),
+                },
                 args: vec![],
                 env: Default::default(),
                 working_dir: None,
@@ -172,16 +196,33 @@ fn prunes_platform_branches_and_quotes_literals() {
         runtime_ui: None,
     };
     let g = generate(&input_for(&p, &analysis, &runtime)).expect("generate");
-    let main = String::from_utf8(g.files.iter().find(|f| f.path == "src/main.rs").expect("main").contents.clone())
-        .expect("utf8");
+    let main = String::from_utf8(
+        g.files
+            .iter()
+            .find(|f| f.path == "src/main.rs")
+            .expect("main")
+            .contents
+            .clone(),
+    )
+    .expect("utf8");
     assert!(main.contains(r#"name: "Acme \"Orders\"""#), "{main}");
-    assert!(!main.contains("Write-Output"), "Windows-only script must be pruned on Linux");
+    assert!(
+        !main.contains("Write-Output"),
+        "Windows-only script must be pruned on Linux"
+    );
     assert!(main.contains("cx.install_service(&"));
     assert!(main.contains("fn before_uninstall"));
     assert!(main.contains("if cx.elevated()"));
     let features: Vec<&str> = g.features.iter().map(|(n, _)| n.as_str()).collect();
-    assert!(features.contains(&"scripts") && features.contains(&"services") && features.contains(&"lang-tr"));
-    assert!(!features.contains(&"lang-de"), "disabled languages are not compiled");
+    assert!(
+        features.contains(&"scripts")
+            && features.contains(&"services")
+            && features.contains(&"lang-tr")
+    );
+    assert!(
+        !features.contains(&"lang-de"),
+        "disabled languages are not compiled"
+    );
     assert!(!features.contains(&"registry"));
 }
 
@@ -222,15 +263,23 @@ fn rejects_unimplemented_actions_honestly() {
 fn conditional_graph_edges_become_boolean_flow() {
     let mut p = rich_project();
     let mut g = p.effective_graph();
-    g.edges.retain(|e| !(e.from == "extract" && e.to == "install-services"));
+    g.edges
+        .retain(|e| !(e.from == "extract" && e.to == "install-services"));
     g.nodes.push(Node {
         condition: Some(Condition::FreshInstall),
-        ..Node::new("first-run", Step::RunAction { action: "configure".into() })
+        ..Node::new(
+            "first-run",
+            Step::RunAction {
+                action: "configure".into(),
+            },
+        )
     });
     g.edges.push(Edge {
         from: "extract".into(),
         to: "first-run".into(),
-        condition: Some(Condition::OptionSelected { option: "port".into() }),
+        condition: Some(Condition::OptionSelected {
+            option: "port".into(),
+        }),
     });
     g.edges.push(Edge {
         from: "first-run".into(),
@@ -240,7 +289,9 @@ fn conditional_graph_edges_become_boolean_flow() {
     g.edges.push(Edge {
         from: "extract".into(),
         to: "install-services".into(),
-        condition: Some(Condition::not(Condition::OptionSelected { option: "port".into() })),
+        condition: Some(Condition::not(Condition::OptionSelected {
+            option: "port".into(),
+        })),
     });
     p.graph = Some(g);
     let analysis = privileges::analyze(&p, Target::LINUX_X64, &NoFacts);
@@ -252,7 +303,10 @@ fn conditional_graph_edges_become_boolean_flow() {
     let main = String::from_utf8(generated.files[4].contents.clone()).expect("utf8");
     assert!(main.contains("cx.option(\"port\")"), "{main}");
     assert!(main.contains("if cx.is_fresh_install()"), "{main}");
-    assert!(main.contains("|| (a"), "join node must OR its incoming edges:\n{main}");
+    assert!(
+        main.contains("|| (a"),
+        "join node must OR its incoming edges:\n{main}"
+    );
 }
 
 /// Writes the generated crate and type-checks it against the real runtime.

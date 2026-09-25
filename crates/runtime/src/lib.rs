@@ -107,7 +107,8 @@ pub fn main(app: &'static app::App, gui: Option<Gui>) -> ! {
         std::process::exit(0);
     }
     let session = Session::new(app, cli);
-    let use_gui = gui.is_some() && !session.cli.silent && platform::has_display() && !session.cli.verify_only;
+    let use_gui =
+        gui.is_some() && !session.cli.silent && platform::has_display() && !session.cli.verify_only;
     if !use_gui {
         attach_parent_console();
     }
