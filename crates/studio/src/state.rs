@@ -350,8 +350,10 @@ impl StudioView {
                     self.1.load(Ordering::Relaxed)
                 }
             }
-            let mut req = inst_builder::BuildRequest::new(project_file, project);
-            req.targets = vec![Target::LINUX_X64];
+            let req = inst_builder::BuildRequest::new(project_file, project);
+            // Leaving `req.targets` empty makes the builder fall back to the
+            // project's own enabled targets (`project.enabled_targets()`),
+            // the same default the CLI uses when no `--target` is passed.
             let observer = Observer(progress, cancel);
             let result = inst_builder::build(&req, &catalog, &observer);
             let mut guard = lock_progress(progress);

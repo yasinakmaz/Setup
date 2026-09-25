@@ -28,10 +28,11 @@ jobs:
       - name: Package
         run: |
           set -eu
-          mkdir -p dist
           strip target/release/installer-studio target/release/installer-studio-cli
-          tar -C target/release -czf dist/installer-studio-linux-x64.tar.gz installer-studio
-          tar -C target/release -czf dist/installer-studio-cli-linux-x64.tar.gz installer-studio-cli
+          rm -rf pkg && mkdir -p pkg dist
+          cp target/release/installer-studio target/release/installer-studio-cli pkg/
+          ./scripts/package-runtime-src.sh pkg/runtime-src
+          tar -C pkg -czf dist/installer-studio-linux-x64.tar.gz .
       - uses: actions/upload-artifact@v4
         with:
           name: linux-x64
@@ -51,10 +52,10 @@ jobs:
         shell: bash
         run: |
           set -eu
-          mkdir -p dist
-          cd target/release
-          7z a ../../dist/installer-studio-windows-x64.zip installer-studio.exe
-          7z a ../../dist/installer-studio-cli-windows-x64.zip installer-studio-cli.exe
+          rm -rf pkg && mkdir -p pkg dist
+          cp target/release/installer-studio.exe target/release/installer-studio-cli.exe pkg/
+          ./scripts/package-runtime-src.sh pkg/runtime-src
+          (cd pkg && 7z a -r ../dist/installer-studio-windows-x64.zip .)
       - uses: actions/upload-artifact@v4
         with:
           name: windows-x64

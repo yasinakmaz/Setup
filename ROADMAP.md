@@ -72,19 +72,33 @@ is intentionally partial so far:
   everything in the file regardless of whether the Studio UI can display
   it, so nothing is lost by round-tripping through the Studio — it just
   can't be authored there yet.
-- The toolbar's Build action always builds `linux-x64` regardless of
-  which targets the open project has enabled (`StudioView::run_build`).
-  Building other targets currently means using `inst-cli build` with
-  `--target`.
 - The command palette opens only from its toolbar button; it has no
   keyboard shortcut yet, and its filter box doesn't yet filter the action
   list.
 - No window-layout persistence: the explorer/inspector/bottom-panel sizes
   and collapsed state reset each time Studio starts.
 
+## Running a downloaded Studio/CLI binary
+
+`inst-builder` compiles generated installers by pointing `cargo` at the
+`inst-runtime` crate's *source* (`crates/runtime`, plus the crates it
+depends on) via a path dependency — it never vendors that code, so it
+needs the source tree on disk at build time. `RuntimeLocation::discover`
+(`crates/builder/src/toolchain.rs`) looks for it, in order: the
+`INST_RUNTIME_SRC` environment variable, a `runtime-src/` directory next
+to the running `installer-studio`/`installer-studio-cli` executable, or
+(inside a checkout of this repository) the workspace root. A plain
+checkout satisfies this automatically; a binary downloaded on its own
+does not, and Build fails with "runtime sources not found" until one of
+the first two is provided. The release archives built by
+`.github/workflows/release.yml` include a trimmed `runtime-src/` next to
+each executable for exactly this reason (see
+`scripts/package-runtime-src.sh`); if you build your own Studio/CLI
+outside CI, run that script yourself, or export `INST_RUNTIME_SRC` to
+point at a checkout of this repository.
+
 ## Not started
 
-- CI (this is being added now — see `.github/workflows/`).
 - Any packaging/distribution of Installer Studio itself (installers for
   the Studio, auto-update for the Studio).
 - macOS is out of scope entirely (no `Target` variant, no code path); the

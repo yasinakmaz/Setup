@@ -77,6 +77,18 @@ is a realistic small project: a few UI fields (including a password field
 that's redacted from logs), a post-install shell action, and a
 Simple-mode Studio project.
 
+## Using a downloaded Studio/CLI binary
+
+The prebuilt `installer-studio`/`installer-studio-cli` binaries (see the
+repository's Releases) ship with a `runtime-src/` folder next to the
+executable — do not separate them. `inst-builder` compiles generated
+installers against the actual `inst-runtime` source, not a vendored copy,
+so it needs that folder (or an `INST_RUNTIME_SRC` environment variable
+pointing at a checkout of this repository) to build anything. See
+[ROADMAP.md](ROADMAP.md#running-a-downloaded-studiocli-binary) for
+details. A `cargo build --workspace` checkout of this repository satisfies
+this on its own.
+
 ## Verifying a change
 
 Every change in this workspace is expected to pass, on both the native
