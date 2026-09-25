@@ -1,0 +1,83 @@
+name: Release binaries
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    name: Build linux-x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies (GPUI)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev \
+            libx11-xcb-dev libvulkan-dev libasound2-dev libzstd-dev
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release -p inst-studio -p inst-cli
+      - name: Package
+        run: |
+          set -eu
+          mkdir -p dist
+          strip target/release/installer-studio target/release/installer-studio-cli
+          tar -C target/release -czf dist/installer-studio-linux-x64.tar.gz installer-studio
+          tar -C target/release -czf dist/installer-studio-cli-linux-x64.tar.gz installer-studio-cli
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: dist/*
+
+  build-windows:
+    name: Build windows-x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release -p inst-studio -p inst-cli
+      - name: Package
+        shell: bash
+        run: |
+          set -eu
+          mkdir -p dist
+          cd target/release
+          7z a ../../dist/installer-studio-windows-x64.zip installer-studio.exe
+          7z a ../../dist/installer-studio-cli-windows-x64.zip installer-studio-cli.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: dist/*
+
+  publish:
+    name: Publish GitHub release
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev-latest
+          name: Development build (${{ github.sha }})
+          prerelease: true
+          make_latest: false
+          body: |
+            Automatically built and published from commit ${{ github.sha }}
+            after CI passed on both Linux and Windows. This tag moves with
+            every green build; it is not a versioned release.
+          files: dist/*
