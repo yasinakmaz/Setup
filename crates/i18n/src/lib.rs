@@ -15,6 +15,7 @@ extern crate std;
 
 mod format;
 pub mod installer;
+pub mod studio;
 
 pub use format::{FormatArgs, format_into};
 

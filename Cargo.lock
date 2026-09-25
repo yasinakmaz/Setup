@@ -3686,7 +3686,14 @@ name = "inst-studio"
 version = "0.1.0"
 dependencies = [
  "gpui-kit",
+ "inst-analyzer",
  "inst-brand",
+ "inst-builder",
+ "inst-catalog",
+ "inst-doctor",
+ "inst-fsx",
+ "inst-i18n",
+ "inst-model",
 ]
 
 [[package]]

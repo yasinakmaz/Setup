@@ -15,5 +15,12 @@ path = "src/main.rs"
 workspace = true
 
 [dependencies]
+inst-analyzer.workspace = true
 inst-brand.workspace = true
+inst-builder.workspace = true
+inst-catalog.workspace = true
+inst-doctor.workspace = true
+inst-fsx.workspace = true
+inst-i18n = { path = "../i18n" }
+inst-model.workspace = true
 gpui-kit.workspace = true
